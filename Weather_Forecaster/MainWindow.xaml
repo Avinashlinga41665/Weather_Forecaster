@@ -1,0 +1,156 @@
+﻿<Window x:Class="Weather_Forecaster.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Weather_Forecaster"
+        mc:Ignorable="d"
+        Title="Weather Forecaster" Height="900" Width="1000" Loaded="Window_Loaded">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Background="#FF0E407E">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="167*"/>
+                <RowDefinition Height="54*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="11*"/>
+                <ColumnDefinition Width="9*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                <!-- Top Panel: ComboBox, Search Box, Search Button -->
+
+
+                <!-- Top Panel: ComboBox, Search Box, Search Button -->
+                <StackPanel Orientation="Horizontal" Margin="10,10,10,0">
+                    <ComboBox x:Name="CityComboBox" Width="120" RenderTransformOrigin="0.439,0.634" Height="28">
+                        <ComboBoxItem Content="Bengaluru"/>
+                        <ComboBoxItem Content="Kolkata"/>
+                    </ComboBox>
+                    <Button x:Name="PrimaryButton" Content="P" Width="30" Height="30" Margin="10,0,0,0"/>
+                    <Button x:Name="Refresh" Content="R" Width="30" Height="30" Margin="10,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="10,10,10,0">
+                    <TextBox x:Name="SearchTextBox" Width="200" Height="30" RenderTransformOrigin="-0.425,1.735" TextChanged="SearchTextBox_TextChanged"/>
+                    <Button x:Name="SearchButton" Content="S" Width="30" Height="30" Margin="10,0,0,0"/>
+                    <Label Content="Location name" Foreground="White" FontSize="20" Margin="10,0,0,0"/>
+
+                </StackPanel>
+                <ListBox Visibility="Collapsed"  Name="ListBox" Height="100" Width="200" Margin="-750,0,0,0" SelectedIndex="0" SelectionChanged="ListBox_SelectionChanged"/>
+
+
+                <!-- Current Weather Panel -->
+                <Grid Margin="0,10,0,0" Height="260" Width="1080">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <Label x:Name="CurrentWeather" Content="Current Weather" Foreground="White" FontSize="20"/>
+                        <Label x:Name="Time" Content="Time" Foreground="White" FontSize="20"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Image x:Name="Icon" Width="50" Height="50" Margin="0,0,0,0"/>
+                            <StackPanel Orientation="Vertical" Margin="10,0,0,0">
+                                <Label x:Name="Temperature" Content="Temperature" Foreground="White" FontSize="30"/>
+                                <Label x:Name="WeatherType" Content="Weather Type" Foreground="White" FontSize="16"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Label x:Name="Description" Content="Description" Foreground="White" FontSize="16"/>
+
+                        <!-- Labels and Values Grid -->
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Labels -->
+                            <Label Grid.Row="0" Grid.Column="0" Content="Air Quality" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                            <Label Grid.Row="0" Grid.Column="1" Content="Wind" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                            <Label Grid.Row="0" Grid.Column="2" Content="Humidity" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                            <Label Grid.Row="0" Grid.Column="3" Content="Visibility" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                            <Label Grid.Row="0" Grid.Column="4" Content="Pressure" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                            <Label Grid.Row="0" Grid.Column="5" Content="Dew Point" Foreground="White" FontSize="14"/>
+
+                            <!-- Values -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" x:Name="AirQualityValue" Text="--" Foreground="White" FontSize="14" Margin="10,0,10,0" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="WindValue" Text="-- km/h" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" x:Name="HumidityValue" Text="--%" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="3" x:Name="VisibilityValue" Text="-- Km" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="4" x:Name="PressureValue" Text="-- hPa" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="5" x:Name="DewPointValue" Text="--" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                        </Grid>
+
+                    </StackPanel>
+                    <Image Grid.Column="1" Stretch="Fill" Margin="8,5,102,5"/>
+                </Grid>
+                <StackPanel Name="HorizontalTabData">
+                <!-- Scrollable Weather Cards -->
+                <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Height="144" Margin="5,5,5,5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="215"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Weekly weather tabs -->
+                        <!-- First column -->
+                        <local:HorizontalTab Grid.Column="0"/>
+
+                        <!-- Second column -->
+                        <local:HorizontalTab Grid.Column="1"/>
+
+                        <!-- Repeat for other columns -->
+                        <!-- Third column -->
+                        <local:HorizontalTab Grid.Column="2"/>
+
+                        <!-- Fourth column -->
+                        <local:HorizontalTab Grid.Column="3"/>
+
+                        <!-- Fifth column -->
+                        <local:HorizontalTab Grid.Column="4"/>
+
+                        <!-- Sixth column -->
+                        <local:HorizontalTab Grid.Column="5"/>
+                    </Grid>
+                </ScrollViewer>
+                </StackPanel>
+                <!-- Summary and Details Section -->
+                <TabControl Margin="10,20,10,10">
+                    <TabItem Header="Summary"/>
+                    <TabItem Header="3 Hour's">
+                        <Grid Background="#FF0E407E">
+                            <!-- Add content for 3 Hour's tab here -->
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="More Details">
+                        <Grid Background="#FF0E407E">
+                            <!-- Add content for More Details tab here -->
+                        </Grid>
+                    </TabItem>
+                    <Grid Background="#FF0E407E" Height="242" Width="974">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="233*"/>
+                            <ColumnDefinition Width="254*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Add content for Summary tab here -->
+                    </Grid>
+                </TabControl>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Window>
