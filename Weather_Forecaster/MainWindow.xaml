@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Weather_Forecaster"
         mc:Ignorable="d"
-        Title="Weather Forecaster" Height="900" Width="1000" Loaded="Window_Loaded">
+        Title="Weather Forecaster" Height="900" Width="1000" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Background="#FF0E407E">
             <Grid.RowDefinitions>
@@ -18,138 +18,210 @@
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Vertical" Grid.ColumnSpan="2" Grid.RowSpan="2">
                 <!-- Top Panel: ComboBox, Search Box, Search Button -->
-
-
-                <!-- Top Panel: ComboBox, Search Box, Search Button -->
+                
                 <StackPanel Orientation="Horizontal" Margin="10,10,10,0">
-                    <ComboBox x:Name="CityComboBox" Width="120" RenderTransformOrigin="0.439,0.634" Height="28">
+                    <ComboBox x:Name="CityComboBox" Width="120"  Height="20">
                         <ComboBoxItem Content="Bengaluru"/>
                         <ComboBoxItem Content="Kolkata"/>
                     </ComboBox>
                     <Button x:Name="PrimaryButton" Content="P" Width="30" Height="30" Margin="10,0,0,0"/>
                     <Button x:Name="Refresh" Content="R" Width="30" Height="30" Margin="10,0,0,0"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="10,10,10,0">
-                    <TextBox x:Name="SearchTextBox" Width="200" Height="30" RenderTransformOrigin="-0.425,1.735" TextChanged="SearchTextBox_TextChanged"/>
-                    <Button x:Name="SearchButton" Content="S" Width="30" Height="30" Margin="10,0,0,0"/>
-                    <Label Content="Location name" Foreground="White" FontSize="20" Margin="10,0,0,0"/>
-
+                <StackPanel Orientation="Horizontal" Margin="8,10,10,0">
+                    <TextBox x:Name="SearchTextBox" Width="200" Height="20" Margin="0,0,0,15" TextChanged="SearchTextBox_TextChanged"/>
+                    <Button x:Name="SearchButton" Content="S" Width="30" Height="30" Margin="10,0,0,5" Click="SearchButton_Click"/>
+                    <Label Name="LocationName" Content="Location name" Foreground="White" FontSize="20" Margin="10,0,0,0"/>
                 </StackPanel>
-                <ListBox Visibility="Collapsed"  Name="ListBox" Height="100" Width="200" Margin="-750,0,0,0" SelectedIndex="0" SelectionChanged="ListBox_SelectionChanged"/>
-
-
+                <ListBox Visibility="Visible"  Name="ListBox" Height="100" Width="200" Margin="-750,0,0,0" SelectedIndex="0" SelectionChanged="ListBox_SelectionChanged"/>
                 <!-- Current Weather Panel -->
-                <Grid Margin="0,10,0,0" Height="260" Width="1080">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <Label x:Name="CurrentWeather" Content="Current Weather" Foreground="White" FontSize="20"/>
-                        <Label x:Name="Time" Content="Time" Foreground="White" FontSize="20"/>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Image x:Name="Icon" Width="50" Height="50" Margin="0,0,0,0"/>
-                            <StackPanel Orientation="Vertical" Margin="10,0,0,0">
-                                <Label x:Name="Temperature" Content="Temperature" Foreground="White" FontSize="30"/>
-                                <Label x:Name="WeatherType" Content="Weather Type" Foreground="White" FontSize="16"/>
+                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Grid.Column="0" Margin="0,10,0,0">
+                    <Grid Margin="0,10,0,0" Height="260" Width="980">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Height="290">
+                            <Label x:Name="CurrentWeather" Content="Current Weather" Foreground="White" FontSize="20"/>
+                            <Label x:Name="Time" Content="Time" Foreground="White" FontSize="20"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Image x:Name="Icon" Width="50" Height="50" Margin="0,0,0,0"/>
+                                <StackPanel Orientation="Vertical" Margin="10,0,0,0">
+                                    <Label x:Name="Temperature" Content="Temperature" Foreground="White" FontSize="30"/>
+                                    <Label x:Name="WeatherType" Content="Weather Type" Foreground="White" FontSize="16"/>
+                                </StackPanel>
                             </StackPanel>
+                            <Label x:Name="Description" Content="Description" Foreground="White" FontSize="16"/>
+                            <!-- Labels and Values Grid -->
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <!-- Labels -->
+                                <Label Grid.Row="0" Grid.Column="0" Content="Air Quality" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                                <Label Grid.Row="0" Grid.Column="1" Content="Wind" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                                <Label Grid.Row="0" Grid.Column="2"  Foreground="White" FontSize="14" Margin="0,0,0,0"/>
+                                <Label Grid.Row="0" Grid.Column="3" Content="Humidity" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                                <Label Grid.Row="0" Grid.Column="4" Content="Visibility" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                                <Label Grid.Row="0" Grid.Column="5" Content="Pressure" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
+                                <Label Grid.Row="0" Grid.Column="6" Content="Dew Point" Foreground="White" FontSize="14"/>
+                                <!-- Values -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="AirQualityValue" Text="--" Foreground="White" FontSize="14" Margin="10,0,10,0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="WindValue" Text="-- km/h" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Name="WindDirection" Text="➤" FontSize="14" Foreground="White" Margin="0,0,0,0">
+                                    <TextBlock.RenderTransform>
+                                        <RotateTransform Angle="{Binding WindDirectionAngle}" CenterX="0.5" CenterY="0.5"/>
+                                    </TextBlock.RenderTransform>
+                                </TextBlock>
+                                <TextBlock Grid.Row="1" Grid.Column="3" x:Name="HumidityValue" Text="--%" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="4" x:Name="VisibilityValue" Text="-- Km" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="5" x:Name="PressureValue" Text="-- hPa" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="6" x:Name="DewPointValue" Text="--" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
+                            </Grid>
                         </StackPanel>
-                        <Label x:Name="Description" Content="Description" Foreground="White" FontSize="16"/>
+                        <Grid x:Name="MapContainer"  Margin="0,0,20,0" Width="350" Grid.Column="1"/>
+                    </Grid>
+                </Border>
+                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Grid.Column="0" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
 
-                        <!-- Labels and Values Grid -->
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Labels -->
-                            <Label Grid.Row="0" Grid.Column="0" Content="Air Quality" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
-                            <Label Grid.Row="0" Grid.Column="1" Content="Wind" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
-                            <Label Grid.Row="0" Grid.Column="2" Content="Humidity" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
-                            <Label Grid.Row="0" Grid.Column="3" Content="Visibility" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
-                            <Label Grid.Row="0" Grid.Column="4" Content="Pressure" Foreground="White" FontSize="14" Margin="0,0,10,0"/>
-                            <Label Grid.Row="0" Grid.Column="5" Content="Dew Point" Foreground="White" FontSize="14"/>
-
-                            <!-- Values -->
-                            <TextBlock Grid.Row="1" Grid.Column="0" x:Name="AirQualityValue" Text="--" Foreground="White" FontSize="14" Margin="10,0,10,0" />
-                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="WindValue" Text="-- km/h" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" x:Name="HumidityValue" Text="--%" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
-                            <TextBlock Grid.Row="1" Grid.Column="3" x:Name="VisibilityValue" Text="-- Km" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
-                            <TextBlock Grid.Row="1" Grid.Column="4" x:Name="PressureValue" Text="-- hPa" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
-                            <TextBlock Grid.Row="1" Grid.Column="5" x:Name="DewPointValue" Text="--" Foreground="White" FontSize="14"  Margin="10,0,10,0"/>
-                        </Grid>
-
+                    <StackPanel Name="HorizontalTabData">
+                        <!-- Scrollable Weather Cards -->
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Height="144" Margin="5,5,5,5">
+                            <WrapPanel x:Name="HorizontalData" Orientation="Horizontal">
+                                <!-- Weather Card 1 -->
+                                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                    <StackPanel>
+                                        <TextBlock Text="--" Name="WeatherDate1" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Width="40" Height="40" Name="Icon1" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                                                <TextBlock Text="--°C" Name="MaxDayTemperature1" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="--°C" Name="MinDayTemperature1" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="-- mm" Name="DewDayPoint1" Foreground="White" FontSize="16" HorizontalAlignment="Right" Margin="20,10,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="--" Name="DayDescription1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Weather Card 2 -->
+                                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                    <StackPanel>
+                                        <TextBlock Text="--" Name="WeatherDate2" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Width="40" Height="40" Name="Icon2" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                                                <TextBlock Text="--°C" Name="MaxDayTemperature2" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="--°C" Name="MinDayTemperature2" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="-- mm" Name="DewDayPoint2" Foreground="White" FontSize="16" HorizontalAlignment="Right" Margin="20,10,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="--" Name="DayDescription2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Weather Card 3 -->
+                                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                    <StackPanel>
+                                        <TextBlock Text="--" Name="WeatherDate3" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Width="40" Height="40" Name="Icon3" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                                                <TextBlock Text="--°C" Name="MaxDayTemperature3" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="--°C" Name="MinDayTemperature3" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="-- mm" Name="DewDayPoint3" Foreground="White" FontSize="16" HorizontalAlignment="Right" Margin="20,10,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="--" Name="DayDescription3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Weather Card 4 -->
+                                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                    <StackPanel>
+                                        <TextBlock Text="--" Name="WeatherDate4" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Width="40" Height="40" Name="Icon4" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                                                <TextBlock Text="--°C" Name="MaxDayTemperature4" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="--°C" Name="MinDayTemperature4" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="-- mm" Name="DewDayPoint4" Foreground="White" FontSize="16" HorizontalAlignment="Right" Margin="20,10,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="--" Name="DayDescription4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Weather Card 5 -->
+                                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                    <StackPanel>
+                                        <TextBlock Text="--" Name="WeatherDate5" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Width="40" Height="40" Name="Icon5" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                                                <TextBlock Text="--°C" Name="MaxDayTemperature5" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="--°C" Name="MinDayTemperature5" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="-- mm" Name="DewDayPoint5" Foreground="White" FontSize="16" HorizontalAlignment="Right" Margin="20,10,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="--" Name="DayDescription5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Weather Card 6 -->
+                                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                    <StackPanel>
+                                        <TextBlock Text="--" Name="WeatherDate6" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Width="40" Height="40" Name="Icon6" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical" Margin="20,0,0,0">
+                                                <TextBlock Text="--°C" Name="MaxDayTemperature6" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="--°C" Name="MinDayTemperature6" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="-- mm" Name="DewDayPoint6" Foreground="White" FontSize="16" HorizontalAlignment="Right" Margin="20,10,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="--" Name="DayDescription6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </WrapPanel>
+                        </ScrollViewer>
                     </StackPanel>
-                    <Image Grid.Column="1" Stretch="Fill" Margin="8,5,102,5"/>
-                </Grid>
-                <StackPanel Name="HorizontalTabData">
-                <!-- Scrollable Weather Cards -->
-                <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Height="144" Margin="5,5,5,5">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="215"/>
-                            <ColumnDefinition Width="215"/>
-                            <ColumnDefinition Width="215"/>
-                            <ColumnDefinition Width="215"/>
-                            <ColumnDefinition Width="215"/>
-                            <ColumnDefinition Width="215"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Weekly weather tabs -->
-                        <!-- First column -->
-                        <local:HorizontalTab Grid.Column="0"/>
-
-                        <!-- Second column -->
-                        <local:HorizontalTab Grid.Column="1"/>
-
-                        <!-- Repeat for other columns -->
-                        <!-- Third column -->
-                        <local:HorizontalTab Grid.Column="2"/>
-
-                        <!-- Fourth column -->
-                        <local:HorizontalTab Grid.Column="3"/>
-
-                        <!-- Fifth column -->
-                        <local:HorizontalTab Grid.Column="4"/>
-
-                        <!-- Sixth column -->
-                        <local:HorizontalTab Grid.Column="5"/>
-                    </Grid>
-                </ScrollViewer>
-                </StackPanel>
+                </Border>
                 <!-- Summary and Details Section -->
-                <TabControl Margin="10,20,10,10">
-                    <TabItem Header="Summary"/>
-                    <TabItem Header="3 Hour's">
-                        <Grid Background="#FF0E407E">
-                            <!-- Add content for 3 Hour's tab here -->
+                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Grid.Column="0" Margin="10">
+                    <TabControl Name="TabControl" Margin="10,20,10,10" SelectionChanged="TabControl_SelectionChanged">
+                        <TabItem Name="Summary" Header="Summary"/>
+                        <TabItem Name="Hours" Header="3 Hour's"/>
+                        <TabItem Name="MoreDetails" Header="More Details"/>
+                        <Grid Background="#FF0E407E" Height="242" Width="974">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="233*"/>
+                                <ColumnDefinition Width="254*"/>
+                            </Grid.ColumnDefinitions>
+                            <!-- Add content for Summary tab here -->
                         </Grid>
-                    </TabItem>
-                    <TabItem Header="More Details">
-                        <Grid Background="#FF0E407E">
-                            <!-- Add content for More Details tab here -->
-                        </Grid>
-                    </TabItem>
-                    <Grid Background="#FF0E407E" Height="242" Width="974">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="233*"/>
-                            <ColumnDefinition Width="254*"/>
-                        </Grid.ColumnDefinitions>
-                        <!-- Add content for Summary tab here -->
-                    </Grid>
-                </TabControl>
+                    </TabControl>
+                </Border>
+                <!-- ContentControl to host the graph -->
+                <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Grid.Column="0" Margin="10">
+                    <ContentControl Width="Auto" Height="300"  Name="DataContent" Margin="10,10,10,10" />
+                </Border>
             </StackPanel>
         </Grid>
     </ScrollViewer>

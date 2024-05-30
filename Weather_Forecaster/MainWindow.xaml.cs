@@ -17,6 +17,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Newtonsoft.Json;
+using GMap.NET;
+using GMap.NET.MapProviders;
+using GMap.NET.WindowsPresentation;
+using static GMap.NET.MapProviders.StrucRoads.SnappedPoint;
+using Newtonsoft.Json.Linq;
+
 
 namespace Weather_Forecaster
 {
@@ -29,14 +35,34 @@ namespace Weather_Forecaster
         public int temperature;
         public string Iconlabel;
         public static int Width;
-        public static string locationname;
-        public MainWindow()
+        public static string locationname= "hyderabad";
+        private GMapControl gMapControl;
+        public  MainWindow()
         {
             InitializeComponent();
+            // Initialize GMapControl
+            gMapControl = new GMapControl
+            {
+                MapProvider = GMapProviders.GoogleMap,
+                MinZoom = 1,
+                MaxZoom = 18,
+                Zoom = 10,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+
+            // Add the GMapControl to the MapContainer Grid
+            MapContainer.Children.Add(gMapControl);
+
+            // Set initial position to a default location
+            gMapControl.Position = new PointLatLng(0, 0);
         }
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Dailyweather("hyderabad");
+
+          await  WeeklyWeather(locationname);
+          await  Dailyweather(locationname);
+                 LoadMap(locationname);
         }
         public static List<string> SearchPlaces(string query)
         {
@@ -184,6 +210,7 @@ namespace Weather_Forecaster
                 {
                     foreach (var displayName in displayNames)
                     {
+                       
                         ListBox.Items.Add(displayName);
                     }
 
@@ -213,7 +240,29 @@ namespace Weather_Forecaster
                 {
                     string apikey = "329cec969cefc40090ac7b5d60221eaf";
                     string url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
+                    bool isValidCity = await IsValidLocationAsync(location);
 
+                    if (isValidCity)
+                    {
+                        // Use city name
+                        url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
+                    }
+                    else
+                    {
+                        // Assume location is in "latitude,longitude" format
+                        var coordinates = await GetCoordinatesFromGeoNamesAsync(location);
+
+                        if (coordinates.HasValue)
+                        {
+                            string latitude = coordinates.Value.Latitude.ToString();
+                            string longitude = coordinates.Value.Longitude.ToString();
+                            url = $"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&units=metric&appid={apikey}";
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid location and unable to retrieve coordinates.");
+                        }
+                    }
                     HttpResponseMessage response = await client.GetAsync(url);
 
                     if (response.IsSuccessStatusCode)
@@ -230,15 +279,16 @@ namespace Weather_Forecaster
                             CityComboBox.Text = location;
                             Time.Content = localTime.ToString("hh:mm tt");
                             Temperature.Content = Math.Round(output.main.temp).ToString() + "°C";
+                            temperature =Convert.ToInt32(Math.Round(output.main.temp));
                             WeatherType.Content = GenerateWeatherMessage(output.weather[0].description);
                             Description.Content = output.weather[0].main;
                             AirQualityValue.Text = AirQualityIndex(location);
-                            double windspeed = output.wind.speed * 3.6;
+                            double windspeed = output.wind.speed * 3.6 ;
                             double windDirectionDegree = output.wind.deg;
-                            string windDirection = WindCalculator.CalculateWindDirection(windDirectionDegree);
-                            WindValue.Text = Math.Round(windspeed).ToString() + " " + windDirection;
+                            CalculateWindDirection(windDirectionDegree);
+                            WindValue.Text = Math.Round(windspeed).ToString() + " Km/h";
                             Imagedata(location);
-                    ;
+                            ;
                         });
                     }
                     else
@@ -252,7 +302,53 @@ namespace Weather_Forecaster
                 MessageBox.Show("An error occurred while loading weather details: " + ex.Message, "Error");
             }
         }
-       
+        public async static Task<bool> IsValidLocationAsync(string location)
+        {
+            try
+            {
+                string apikey = "329cec969cefc40090ac7b5d60221eaf";
+                string url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&appid={apikey}";
+
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    return response.IsSuccessStatusCode;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async static Task<(double Latitude, double Longitude)?> GetCoordinatesFromGeoNamesAsync(string location)
+        {
+            try
+            {
+                string apiUrl = $"http://api.geonames.org/searchJSON?q={location}&maxRows=1&username=avinash1547";
+                using (HttpClient client = new HttpClient())
+                {
+                    string json = await client.GetStringAsync(apiUrl);
+                    var result = JsonConvert.DeserializeObject<geonamesResult>(json);
+
+                    if (result?.geonames != null && result.geonames.Count > 0)
+                    {
+                        var data = result.geonames[0];
+                        if (double.TryParse(data.lat, out double latitude) && double.TryParse(data.lng, out double longitude))
+                        {
+                            return (latitude, longitude);
+                        }
+                    }
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error (you can replace this with your logging mechanism)
+                Console.WriteLine($"Error fetching coordinates from GeoNames: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task WeeklyWeather(string location)
         {
             try
@@ -262,6 +358,29 @@ namespace Weather_Forecaster
 
                 using (HttpClient httpClient = new HttpClient())
                 {
+                    bool isValidCity = await IsValidLocationAsync(location);
+
+                    if (isValidCity)
+                    {
+                        // Use city name
+                        url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
+                    }
+                    else
+                    {
+                        // Assume location is in "latitude,longitude" format
+                        var coordinates = await GetCoordinatesFromGeoNamesAsync(location);
+
+                        if (coordinates.HasValue)
+                        {
+                            string latitude = coordinates.Value.Latitude.ToString();
+                            string longitude = coordinates.Value.Longitude.ToString();
+                            url = $"https://api.openweathermap.org/data/2.5/forecast?lat={latitude}&lon={longitude}&units=metric&appid={apikey}";
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid location and unable to retrieve coordinates.");
+                        }
+                    }
                     HttpResponseMessage response = await httpClient.GetAsync(url);
 
                     if (response.IsSuccessStatusCode)
@@ -271,53 +390,81 @@ namespace Weather_Forecaster
                         WeatherParameters.root output = result;
 
                         HashSet<DateTime> uniqueDates = new HashSet<DateTime>();
-
-                        // Initialize variables for grid layout
-                       
-                        // Define the horizontal and vertical spacing between tabs
-                        int horizontalSpacing = 10;
-                        int verticalSpacing = 10;
-
-                        // Initialize variables to keep track of the current position
-                        int x = 0;
-                        int y = 0;
+                        int cardIndex = 1;
 
                         foreach (var item in output.list)
                         {
                             DateTime currentDate = item.dt_txt;
 
-                            // Check if the current date is already in the HashSet
-                            if (uniqueDates.Contains(currentDate.Date) || currentDate.Hour != 9)
+                            if (uniqueDates.Contains(currentDate.Date)/* || currentDate.Hour != 9*/)
                             {
-                                // If the current date is already in the HashSet or not at 9 AM, skip this iteration
                                 continue;
                             }
 
-                            // Add the current date to the HashSet to mark it as seen
                             uniqueDates.Add(currentDate.Date);
 
-                            // Create a new instance of HorizontalTab for each unique date and pass the data
-                            HorizontalTab horizontalTab = new HorizontalTab();
-                            horizontalTab.TabInfo(currentDate, Convert.ToInt32(item.main.temp_min), Convert.ToInt32(item.main.temp_max), item.weather[0].description, GenerateWeatherMessage(item.weather[0].description), CalculateDewPoint(item.main.temp, item.main.humidity), GetImage(item.weather[0].icon));
-                            HorizontalTabData.Children.Add(horizontalTab);
+                            if (cardIndex > 7)
+                            {
+                                break;
+                            }
 
-                            // Update the current position for the next tab
-                            x++;
+                            // Update the weather card based on cardIndex
+                            UpdateWeatherCard(cardIndex, currentDate, item);
+
+                            cardIndex++;
                         }
                     }
                     else
                     {
-                        // Handle HTTP error
                         MessageBox.Show($"HTTP request failed with status code: {response.StatusCode}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Handle exception
                 MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
+
+        private async void UpdateWeatherCard(int cardIndex, DateTime date, WeatherParameters.ListItem item)
+        {
+            string dateName = $"WeatherDate{cardIndex}";
+            string iconName = $"Icon{cardIndex}";
+            string maxTempName = $"MaxDayTemperature{cardIndex}";
+            string minTempName = $"MinDayTemperature{cardIndex}";
+            string dewPointName = $"DewDayPoint{cardIndex}";
+            string descriptionName = $"DayDescription{cardIndex}";
+
+            var weatherDate = this.FindName(dateName) as TextBlock;
+            var icon = this.FindName(iconName) as Image;
+            var maxTemp = this.FindName(maxTempName) as TextBlock;
+            var minTemp = this.FindName(minTempName) as TextBlock;
+            var dewPoint = this.FindName(dewPointName) as TextBlock;
+            var description = this.FindName(descriptionName) as TextBlock;
+
+            if (weatherDate != null)
+                weatherDate.Text = date.ToString("dd MMM");
+
+            if (maxTemp != null)
+                maxTemp.Text = $"{Convert.ToInt32(item.main.temp_max)}°C";
+
+            if (minTemp != null)
+                minTemp.Text = $"{Convert.ToInt32(item.main.temp_min)}°C";
+
+            if (dewPoint != null)
+                dewPoint.Text = $"{CalculateDewPoint(item.main.temp, item.main.humidity)} mm";
+
+            if (description != null)
+                description.Text = GenerateWeatherMessage(item.weather[0].description);
+
+            if (icon != null)
+            {
+                icon.Source = await GetImage(item.weather[0].icon);
+            }
+        }
+
+
+
         public async Task<ImageSource> GetImage(string icondata)
         {
             try
@@ -351,6 +498,7 @@ namespace Weather_Forecaster
             }
         }
 
+
         public async Task Imagedata(String location)
         {
             try
@@ -362,7 +510,29 @@ namespace Weather_Forecaster
                     {
                         string apikey = "329cec969cefc40090ac7b5d60221eaf";
                         string url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
+                        bool isValidCity = await IsValidLocationAsync(location);
 
+                        if (isValidCity)
+                        {
+                            // Use city name
+                            url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
+                        }
+                        else
+                        {
+                            // Assume location is in "latitude,longitude" format
+                            var coordinates = await GetCoordinatesFromGeoNamesAsync(location);
+
+                            if (coordinates.HasValue)
+                            {
+                                string latitude = coordinates.Value.Latitude.ToString();
+                                string longitude = coordinates.Value.Longitude.ToString();
+                                url = $"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&units=metric&appid={apikey}";
+                            }
+                            else
+                            {
+                                throw new Exception("Invalid location and unable to retrieve coordinates.");
+                            }
+                        }
                         HttpResponseMessage response = await client.GetAsync(url);
 
                         if (response.IsSuccessStatusCode)
@@ -371,6 +541,7 @@ namespace Weather_Forecaster
                             var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
                             WeatherParameters.root output = result;
                             string icon = output.weather[0].icon;
+                            Iconlabel = icon;
                             string iconUrl = $"http://openweathermap.org/img/wn/{icon}.png";
                             // Download the icon image from the URL
                             byte[] imageData = await client.GetByteArrayAsync(iconUrl);
@@ -400,6 +571,24 @@ namespace Weather_Forecaster
                 MessageBox.Show("Error loading weather icon: " + ex.Message);
             }
         }
+        public void CalculateWindDirection(double degree)
+        {
+            try
+            {
+                degree %= 360;
+                // Create a RotateTransform
+                RotateTransform rotateTransform = new RotateTransform(degree);
+
+                // Apply the RotateTransform to the TextBlock
+                WindDirection.RenderTransform = rotateTransform;
+                WindDirection.RenderTransformOrigin = new Point(0.5, 0.5); // Set rotation origin to center
+
+            }
+            catch (Exception)
+            {
+                
+            }
+        }
         public string AirQualityIndex(string location)
         {
             try
@@ -408,42 +597,71 @@ namespace Weather_Forecaster
                 {
                     string apikey = "329cec969cefc40090ac7b5d60221eaf";
                     string url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
-                    var json = web.DownloadString(url);
-                    var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
-                    WeatherParameters.root output = result;
-                    string url2 = $"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={output.coord.lat}&lon={output.coord.lon}&start=1606223802&end=1606482999&appid={apikey}";
-                    json = web.DownloadString(url2);
-                    result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
-                    output = result;
-                    string airQuality;
-                    foreach (var item in output.list)
+                    using (HttpClient client = new HttpClient())
                     {
-
-                        switch (item.main.aqi)
+                        HttpResponseMessage response = client.GetAsync(url).Result; // Synchronous call
+                        if (response.IsSuccessStatusCode)
                         {
-                            case 1:
-                                airQuality = "Good";
-                                break;
-                            case 2:
-                                airQuality = "Fair";
-                                break;
-                            case 3:
-                                airQuality = "Moderate";
-                                break;
-                            case 4:
-                                airQuality = "Poor";
-                                break;
-                            case 5:
-                                airQuality = "Very Poor";
-                                break;
-                            default:
-                                airQuality = "--"; // Handle unexpected values
-                                break;
+                            url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
+
                         }
-                        return airQuality;
+                        else
+                        {
+                            string apiUrl = $"http://api.geonames.org/searchJSON?q={location}&maxRows=1&username=avinash1547";
+                            using (HttpClient client1 = new HttpClient())
+                            {
+                                string json1 = client1.GetStringAsync(apiUrl).Result; // Synchronous call
+                                var result1 = JsonConvert.DeserializeObject<geonamesResult>(json1);
+
+                                if (result1?.geonames != null && result1.geonames.Count > 0)
+                                {
+                                    var data = result1.geonames[0];
+                                    if (double.TryParse(data.lat, out double latitude1) && double.TryParse(data.lng, out double longitude1))
+                                    {
+                                        url = $"https://api.openweathermap.org/data/2.5/weather?lat={latitude1}&lon={longitude1}&units=metric&appid={apikey}";
+
+                                    }
+                                }
+                            }
+                        }
+
+                        var json = web.DownloadString(url);
+                        var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
+                        WeatherParameters.root output = result;
+                        string url2 = $"http://api.openweathermap.org/data/2.5/air_pollution/history?lat={output.coord.lat}&lon={output.coord.lon}&start=1606223802&end=1606482999&appid={apikey}";
+                        json = web.DownloadString(url2);
+                        result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
+                        output = result;
+                        string airQuality;
+                        foreach (var item in output.list)
+                        {
+
+                            switch (item.main.aqi)
+                            {
+                                case 1:
+                                    airQuality = "Good";
+                                    break;
+                                case 2:
+                                    airQuality = "Fair";
+                                    break;
+                                case 3:
+                                    airQuality = "Moderate";
+                                    break;
+                                case 4:
+                                    airQuality = "Poor";
+                                    break;
+                                case 5:
+                                    airQuality = "Very Poor";
+                                    break;
+                                default:
+                                    airQuality = "--"; // Handle unexpected values
+                                    break;
+                            }
+                            return airQuality;
+                        }
+                        return "Unknown";
                     }
-                    return "Unknown";
-                }
+                }   
             }
             catch (Exception)
             {
@@ -526,6 +744,179 @@ namespace Weather_Forecaster
 
             }
         }
+        private async void LoadMap(string location)
+        {
+            try
+            {
+                using (WebClient web = new WebClient())
+                {
+                    string apiKey = "329cec969cefc40090ac7b5d60221eaf";
+                    string url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apiKey}";
+                    bool isValidCity = await IsValidLocationAsync(location);
+
+                    if (isValidCity)
+                    {
+                        // Use city name
+                        url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apiKey}";
+                    }
+                    else
+                    {
+                        // Assume location is in "latitude,longitude" format
+                        var coordinates = await GetCoordinatesFromGeoNamesAsync(location);
+
+                        if (coordinates.HasValue)
+                        {
+                            string latitude = coordinates.Value.Latitude.ToString();
+                            string longitude = coordinates.Value.Longitude.ToString();
+                            url = $"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&units=metric&appid={apiKey}";
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid location and unable to retrieve coordinates.");
+                        }
+                    }
+                    var json = web.DownloadString(url);
+                    var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
+                    WeatherParameters.root output = result;
+                    // Update the position of the existing GMapControl
+                    gMapControl.Position = new PointLatLng(output.coord.lat, output.coord.lon);
+                    gMapControl.Markers.Clear();
+
+                    // Create and add a heat map overlay
+                // CreateHeatMapOverlay(output.coord.lat, output.coord.lon,gMapControl.Zoom);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while loading the map: {ex.Message}");
+            }
+        }
+        private void CreateHeatMapOverlay(double lat, double lon, double zoom)
+        {
+            // Create a canvas for heat map overlay
+            Canvas heatMapCanvas = new Canvas
+            {
+                Width = gMapControl.ActualWidth,
+                Height = gMapControl.ActualHeight,
+                Background = Brushes.Transparent
+            };
+
+            // Calculate the tile coordinates based on the provided latitude and longitude
+            int zoomLevel = Convert.ToInt32(zoom); // Adjust the zoom level as needed
+            zoomLevel = 1;
+            int xTile = (int)(Math.Floor((lon + 180) / 360 * Math.Pow(2, zoomLevel)));
+            int yTile = (int)(Math.Floor((1 - Math.Log(Math.Tan(lat * Math.PI / 180) + 1 / Math.Cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.Pow(2, zoomLevel)));
+
+            // Replace this with your actual API key for OpenWeatherMap
+            string apiKey = "329cec969cefc40090ac7b5d60221eaf";
+
+            // Define the base URL for OpenWeatherMap tile images
+            string baseUrl = $"https://tile.openweathermap.org/map/temp_new/{zoomLevel}/{xTile}/{yTile}.png?appid={apiKey}";
+
+            // Create the image element for the tile
+            Image tileImage = new Image
+            {
+                Width = gMapControl.ActualWidth, // Tile width
+                Height = gMapControl.ActualHeight, // Tile height
+                Opacity = 1
+            };
+
+            // Set the source of the tile image
+            tileImage.Source = new BitmapImage(new Uri(baseUrl));
+
+            // Position the tile image on the canvas
+            Canvas.SetLeft(tileImage, 0);
+            Canvas.SetTop(tileImage, 0);
+
+            // Add the tile image to the heat map canvas
+            heatMapCanvas.Children.Add(tileImage);
+
+            // Add the heat map canvas to the GMapControl
+            MapContainer.Children.Add(heatMapCanvas);
+        }
+
+        public void RecentLocations(string location, bool isPrimary)
+        {
+            try
+            {
+                string fileName = "RecentWeatherData.json";
+                List<Location> locations = new List<Location>();
+
+                // Check if the file exists and read existing data
+                if (System.IO.File.Exists(fileName))
+                {
+                    string existingJson = System.IO.File.ReadAllText(fileName);
+                    if (!string.IsNullOrWhiteSpace(existingJson))
+                    {
+                        // Deserialize existing data
+                        locations = JsonConvert.DeserializeObject<List<Location>>(existingJson);
+                    }
+                }
+                // Add or update the primary location
+                if (isPrimary)
+                {
+                    var primaryLocation = locations.FirstOrDefault(loc => loc.LocationName == location);
+                    if (primaryLocation != null)
+                    {
+                        foreach (var loc in locations)
+                        {
+                            loc.IsPrimary = false;
+                        }
+                        primaryLocation.LocationName = location;
+                        primaryLocation.IsPrimary = true;
+                        // Move primaryLocation to the beginning of the list
+                        locations.Remove(primaryLocation); // Remove from current position
+                        locations.Insert(0, primaryLocation); // Insert at index 0
+
+                    }
+                    else if (!locations.Any(loc => loc.LocationName == location))
+                    {
+                        locations.Insert(0, new Location { LocationID = GenerateId(locations), LocationName = location, IsPrimary = true, temperature = temperature, iconlabel = Iconlabel });
+
+                    }
+                }
+                else
+                {
+                    if (!locations.Any(loc => loc.LocationName == location))
+                    {
+                        locations.Add(new Location { LocationID = GenerateId(locations), LocationName = location, IsPrimary = false, temperature = temperature, iconlabel = Iconlabel });
+
+                        var recentNonPrimaryLocations = locations.Where(loc => !loc.IsPrimary).OrderByDescending(loc => loc.LocationID).Take(5).ToList();
+
+                        var primaryLocation = locations.FirstOrDefault(loc => loc.IsPrimary);
+                        if (primaryLocation != null)
+                        {
+                            locations = new List<Location> { primaryLocation };
+                            locations.AddRange(recentNonPrimaryLocations);
+                        }
+                        else
+                        {
+                            locations = recentNonPrimaryLocations;
+                        }
+                    }
+                }
+                // Serialize the updated list to JSON format
+                string jsonData = JsonConvert.SerializeObject(locations, Formatting.Indented);
+
+                // Write the JSON data to a file
+                try
+                {
+                    System.IO.File.WriteAllText(fileName, jsonData);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("An error occurred while writing to the file: " + ex.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while retrieving recent locations: " + ex.Message);
+            }
+        }
+        private int GenerateId(List<Location> locations) // for locationId autogenerate
+        {
+            return (locations.Count > 0) ? locations.Max(loc => loc.LocationID) + 1 : 1;
+        }
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -534,17 +925,162 @@ namespace Weather_Forecaster
             ListBoxData();
         }
 
+
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            
-            if (ListBox.SelectedItem != null)
-            {
-                SearchTextBox.Text = ListBox.SelectedItem.ToString();
+            if (ListBox.SelectedIndex>0)
+            {             
+                    var selectedItem = ListBox.SelectedItem.ToString();
+                    SearchTextBox.Text = selectedItem;
+                    locationname = selectedItem;
+                    LocationName.Content = locationname;
+                    LocationSearched();
+
             }
             ListBox.Visibility = Visibility.Collapsed;
         }
+        public async void LocationSearched()
+        {
+            await  Dailyweather(locationname);
+            await  WeeklyWeather(locationname);
+            LoadMap(locationname);
+            var graph = SummaryGraph(locationname, DateTime.Today); 
+            DataContent.Content = graph;
+            RecentLocations(locationname, false);
+        }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Summary summary = new Summary();
+            if (e.Source is TabControl tabControl1 && tabControl1.SelectedIndex == 0) // Check if the selected tab is the first tab (index 0)
+            {
+                // Call the SummaryGraph method here
+                var graph = SummaryGraph(locationname, DateTime.Today); // Replace "YourLocation" with the actual location and DateTime.Today with the desired date
+                DataContent.Content = graph;
+            }
+            else if (e.Source is TabControl tabControl2 && tabControl2.SelectedIndex == 2) // Check if tab 3 is selected
+            {
+                MoreDetails moreDetails = new MoreDetails();
+                DataContent.Content = moreDetails;
+            }
+        }
+        public UserControl SummaryGraph(string location, DateTime date)
+        {
+            using (WebClient web = new WebClient())
+            {
+                try
+                {
+                    string apikey = "329cec969cefc40090ac7b5d60221eaf";
+                    string url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
+                    using (HttpClient client = new HttpClient())
+                    {
+                        HttpResponseMessage response = client.GetAsync(url).Result; // Synchronous call
+                        if (response.IsSuccessStatusCode)
+                        {
+                            url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
+
+                        }
+                        else
+                        {
+                            string apiUrl = $"http://api.geonames.org/searchJSON?q={location}&maxRows=1&username=avinash1547";
+                            using (HttpClient client1 = new HttpClient())
+                            {
+                                string json1 = client1.GetStringAsync(apiUrl).Result; // Synchronous call
+                                var result1 = JsonConvert.DeserializeObject<geonamesResult>(json1);
+
+                                if (result1?.geonames != null && result1.geonames.Count > 0)
+                                {
+                                    var data = result1.geonames[0];
+                                    if (double.TryParse(data.lat, out double latitude1) && double.TryParse(data.lng, out double longitude1))
+                                    {
+                                        url = $"https://api.openweathermap.org/data/2.5/forecast?lat={latitude1}&lon={longitude1}&units=metric&appid={apikey}";
+
+                                    }
+                                }
+                            }
+                        }
+                        var json = web.DownloadString(url);
+                        var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
+                        WeatherParameters.root output = result;
+
+                        var temperatures = new Dictionary<DateTime, int>();
+                        foreach (var item in output.list)
+                        {
+                            if (item.dt_txt.Date == date.Date)
+                            {
+                                temperatures.Add(item.dt_txt, Convert.ToInt32(item.main.temp));
+                            }
+                        }
+
+                        return GenerateHourlyLineChart(temperatures);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error: {ex.Message}");
+                    return null;
+                }
+            }
+        }
+
+        private UserControl GenerateHourlyLineChart(Dictionary<DateTime, int> temperatures)
+        {
+            try
+            {
+                if (temperatures == null || temperatures.Count == 0)
+                    throw new ArgumentException("Temperature list cannot be null or empty.");
+
+                return  new Summary(temperatures);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return null;
+            }
+        }
+
+        private void SearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            locationname = SearchTextBox.Text;
+            LocationName.Content = locationname;
+            LocationSearched();
+
+        }
+
+        private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.Child is StackPanel stackPanel)
+            {
+                foreach (var child in stackPanel.Children)
+                {
+                    if (child is TextBlock textBlock && textBlock.Name.StartsWith("WeatherDate"))
+                    {
+                        if (DateTime.TryParse(textBlock.Text, out DateTime selectedDate))
+                        {                    // Assuming you have a method to get the location                           
+                            ShowSummaryGraph(locationname, selectedDate);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        private void ShowSummaryGraph(string location, DateTime date)
+        {
+            var summaryGraph = SummaryGraph(location, date);
+            if(summaryGraph != null)
+            {
+                DataContent.Content = summaryGraph;
+            }
+        }
+        private string GetSelectedLocation()
+        {
+            return CityComboBox.SelectedItem != null ? CityComboBox.SelectedItem.ToString() : "DefaultLocation";
+            
+        }
+
     }
 }
+
 public class geonames
 {
     public string adminCode1 { get; set; }
@@ -611,51 +1147,4 @@ public class PostalCodeData
     public string placeName { get; set; }
     public string postalCode { get; set; }
 }
-
-
-public class WindCalculator
-{
-    public static string CalculateWindDirection(double degree)
-    {
-        try
-        {
-            // Unicode arrow character representing the arrow
-            char arrow = '➤';
-
-            // Normalize the degree to the range [0, 360)
-            degree %= 360;
-
-            // Define the Unicode code points for different arrow characters
-            int rightArrowCodePoint = 0x27A4; // Code point for '➤'
-            int upArrowCodePoint = 0x2191; // Code point for '↑'
-            int downArrowCodePoint = 0x2193; // Code point for '↓'
-            int leftArrowCodePoint = 0x2190; // Code point for '←'
-
-            // Calculate the new arrow character based on the degree
-            if (degree >= 315 || degree < 45)
-            {
-                arrow = (char)rightArrowCodePoint; // Right
-            }
-            else if (degree >= 45 && degree < 135)
-            {
-                arrow = (char)upArrowCodePoint; // Up
-            }
-            else if (degree >= 135 && degree < 225)
-            {
-                arrow = (char)leftArrowCodePoint; // Left
-            }
-            else if (degree >= 225 && degree < 315)
-            {
-                arrow = (char)downArrowCodePoint; // Down
-            }
-
-            // Convert the character to a string and return
-            return arrow.ToString();
-        }
-        catch (Exception)
-        {
-            return "unknown";
-        }
-    }
-} 
     
