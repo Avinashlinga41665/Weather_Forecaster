@@ -98,6 +98,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Hourly.xaml.cs">
+      <DependentUpon>Hourly.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MoreDetails.xaml.cs">
       <DependentUpon>MoreDetails.xaml</DependentUpon>
     </Compile>
@@ -105,6 +108,10 @@
       <DependentUpon>Summary.xaml</DependentUpon>
     </Compile>
     <Compile Include="WeatherParameters.cs" />
+    <Page Include="Hourly.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

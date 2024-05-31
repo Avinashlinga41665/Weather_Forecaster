@@ -20,8 +20,15 @@
             </Grid.ColumnDefinitions>
 
             <!-- Weather Insights -->
-            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="0" Grid.Column="0">
+            <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="0" Grid.Column="0">
                 <StackPanel Margin="10">
+                    <StackPanel.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF38B2F1" Offset="1"/>
+                            <GradientStop Color="#FF257198" Offset="0"/>
+                        </LinearGradientBrush>
+                    </StackPanel.Background>
                     <TextBlock Text="Weather Insights" Foreground="White" FontSize="18" FontWeight="Bold"/>
                     <StackPanel Orientation="Horizontal" Margin="5">
                         <TextBlock Text="Day" Foreground="White" FontSize="16"/>
@@ -37,8 +44,15 @@
             </Border>
 
             <!-- Sun & Moon -->
-            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="0" Grid.Column="1">
+            <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="0" Grid.Column="1">
                 <StackPanel Margin="10">
+                    <StackPanel.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF38B2F1" Offset="1"/>
+                            <GradientStop Color="#FF257198" Offset="0"/>
+                        </LinearGradientBrush>
+                    </StackPanel.Background>
                     <TextBlock FontSize="18" FontWeight="Bold" Margin="0,0,0,0">
                         <Run Text="Sun " Foreground="Yellow"/>
                         <Run Text="And" Foreground="#E9E969"/>
@@ -102,8 +116,16 @@
             </Border>
 
             <!-- Suggestions for today -->
-            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="0" Grid.Column="2">
+            <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="0" Grid.Column="2">
                 <StackPanel Margin="10">
+                    <StackPanel.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF38B2F1" Offset="1"/>
+                            <GradientStop Color="#FF257198" Offset="0"/>
+                        </LinearGradientBrush>
+                    </StackPanel.Background>
+
                     <TextBlock Text="Suggestions for today" Foreground="White" FontSize="18" FontWeight="Bold"/>
                     <StackPanel Orientation="Horizontal" Margin="5">
                         <Rectangle Name="UmbrellaColor" Fill="White" Width="10" Height="10"/>
@@ -129,8 +151,15 @@
             </Border>
 
             <!-- Weekly Planner -->
-            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="1" Grid.ColumnSpan="3">
+            <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10" Grid.Row="1" Grid.ColumnSpan="3">
                 <StackPanel Margin="10">
+                    <StackPanel.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="Black"/>
+                            <GradientStop Color="#FF38B2F1" Offset="1"/>
+                            <GradientStop Color="#FF257198" Offset="0"/>
+                        </LinearGradientBrush>
+                    </StackPanel.Background>
                     <Grid>
                         <!-- Pie Chart -->
                         <lvc:PieChart Name="PieChartData" Margin="50,30,0,0" Width="400" Height="200"/>

@@ -22,6 +22,7 @@ using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
 using static GMap.NET.MapProviders.StrucRoads.SnappedPoint;
 using Newtonsoft.Json.Linq;
+using System.Security.Policy;
 
 
 namespace Weather_Forecaster
@@ -36,9 +37,13 @@ namespace Weather_Forecaster
         public string Iconlabel;
         public static int Width;
         public static string locationname= "hyderabad";
+       
         private GMapControl gMapControl;
-        public  MainWindow()
+       // Hourly hourly = new Hourly();
+
+        public MainWindow()
         {
+
             InitializeComponent();
             // Initialize GMapControl
             gMapControl = new GMapControl
@@ -59,10 +64,60 @@ namespace Weather_Forecaster
         }
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-
           await  WeeklyWeather(locationname);
           await  Dailyweather(locationname);
-                 LoadMap(locationname);
+            locationname = "Hyderabad";
+            recentLocations = readRecentLocations();
+            foreach (Location primary in recentLocations)
+            {
+                if (primary.IsPrimary == true)
+                {
+                    locationname = primary.LocationName;
+                }
+            }
+
+            // RefreshRecentLocationsPanel();
+            // Bind the ComboBox to the list of locations
+            foreach (var item in recentLocations)
+            {
+                CityComboBox.Items.Add(item.LocationName);
+            }
+
+            LoadMap(locationname);
+        }
+        public List<Location> readRecentLocations()
+        {
+            try
+            {
+                string fileName = "RecentWeatherData.json";
+                List<Location> locations = new List<Location>();
+
+                // Check if the file exists and read existing data
+                if (System.IO.File.Exists(fileName))
+                {
+                    string existingJson = System.IO.File.ReadAllText(fileName);
+                    if (!string.IsNullOrWhiteSpace(existingJson))
+                    {
+                        // Deserialize existing data
+                        try
+                        {
+                            locations = JsonConvert.DeserializeObject<List<Location>>(existingJson);
+                        }
+                        catch (JsonException jsonEx)
+                        {
+                            Console.WriteLine("JSON deserialization error: " + jsonEx.Message);
+                            MessageBox.Show("An error occurred while reading the locations data. Please check the data file.");
+                        }
+                    }
+                }
+
+                return locations;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while retrieving recent locations: " + ex.Message);
+                return null;
+            }
         }
         public static List<string> SearchPlaces(string query)
         {
@@ -276,7 +331,7 @@ namespace Weather_Forecaster
                         // Update UI elements for current weather
                         Dispatcher.Invoke(() =>
                         {
-                            CityComboBox.Text = location;
+                            CityComboBox.Text = locationname;
                             Time.Content = localTime.ToString("hh:mm tt");
                             Temperature.Content = Math.Round(output.main.temp).ToString() + "°C";
                             temperature =Convert.ToInt32(Math.Round(output.main.temp));
@@ -288,7 +343,13 @@ namespace Weather_Forecaster
                             CalculateWindDirection(windDirectionDegree);
                             WindValue.Text = Math.Round(windspeed).ToString() + " Km/h";
                             Imagedata(location);
-                            ;
+                            double humidity = output.main.humidity;
+                            HumidityValue.Text = Math.Round(humidity).ToString() + "%";
+                            double visibility = output.visibility / 1000.0;
+                            VisibilityValue.Text = Math.Round(visibility).ToString() + " Km";
+                            PressureValue.Text = Math.Round(output.main.pressure).ToString();
+                            DewPointValue.Text = $"{CalculateDewPoint(temperature, humidity)} mm";
+
                         });
                     }
                     else
@@ -939,10 +1000,35 @@ namespace Weather_Forecaster
             }
             ListBox.Visibility = Visibility.Collapsed;
         }
+        private void UpdateComboBox()
+        {
+            try
+            {
+                // Clear existing items 
+                //CityComboBox.DataSource = null;
+                CityComboBox.Items.Clear();
+                //Add recent locations to the ComboBox
+                foreach (var location in recentLocations)
+                {
+
+                    CityComboBox.Items.Add(location.LocationName);
+                    if (location.IsPrimary)
+                    {
+                        CityComboBox.Text = location.LocationName;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error occured updatecombo");
+                MessageBox.Show("A error while updating comboBox" + ex.Message);
+            }
+        }
         public async void LocationSearched()
         {
             await  Dailyweather(locationname);
             await  WeeklyWeather(locationname);
+            //hourly.hourlydata(locationname, DateTime.Now.Date);
             LoadMap(locationname);
             var graph = SummaryGraph(locationname, DateTime.Today); 
             DataContent.Content = graph;
@@ -954,14 +1040,21 @@ namespace Weather_Forecaster
             Summary summary = new Summary();
             if (e.Source is TabControl tabControl1 && tabControl1.SelectedIndex == 0) // Check if the selected tab is the first tab (index 0)
             {
+                
                 // Call the SummaryGraph method here
                 var graph = SummaryGraph(locationname, DateTime.Today); // Replace "YourLocation" with the actual location and DateTime.Today with the desired date
                 DataContent.Content = graph;
             }
             else if (e.Source is TabControl tabControl2 && tabControl2.SelectedIndex == 2) // Check if tab 3 is selected
             {
+                
                 MoreDetails moreDetails = new MoreDetails();
                 DataContent.Content = moreDetails;
+            }
+            else if (e.Source is TabControl tabControl3 && tabControl3.SelectedIndex == 1) // Check if tab 3 is selected
+            {
+                Hourly hourly = new Hourly();
+                DataContent.Content = hourly;
             }
         }
         public UserControl SummaryGraph(string location, DateTime date)
@@ -1046,7 +1139,7 @@ namespace Weather_Forecaster
             LocationSearched();
 
         }
-
+        //private bool IsSummaryTabActive = false;
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is Border border && border.Child is StackPanel stackPanel)
@@ -1056,8 +1149,19 @@ namespace Weather_Forecaster
                     if (child is TextBlock textBlock && textBlock.Name.StartsWith("WeatherDate"))
                     {
                         if (DateTime.TryParse(textBlock.Text, out DateTime selectedDate))
-                        {                    // Assuming you have a method to get the location                           
-                            ShowSummaryGraph(locationname, selectedDate);
+                        {                    // Assuming you have a method to get the location
+
+                            if (TabControl.SelectedIndex == 0)
+                            {
+                                ShowSummaryGraph(locationname, selectedDate);
+
+                            }
+                            else if (TabControl.SelectedIndex == 1)
+                            {
+                                Hourly hourly = new Hourly();
+                                hourly.hourlydata(locationname, selectedDate);
+                                DataContent.Content = hourly;
+                            }
                         }
                         break;
                     }
