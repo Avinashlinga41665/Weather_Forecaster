@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Weather_Forecaster
 {
-    internal class WeatherParameters
+    internal class WeatherParameters //Avinash
     {
 
         public class coord
@@ -35,14 +35,14 @@ namespace Weather_Forecaster
         }
         public class components
         {
-            public double co { get; set; }
-            public double no { get; set; }
-            public double no2 { get; set; }
-            public double o3 { get; set; }
-            public double so2 { get; set; }
-            public double pm2_5 { get; set; }
-            public double pm10 { get; set; }
-            public double nh3 { get; set; }
+            //public double co { get; set; }
+            //public double no { get; set; }
+            //public double no2 { get; set; }
+            //public double o3 { get; set; }
+            //public double so2 { get; set; }
+            //public double pm2_5 { get; set; }
+            //public double pm10 { get; set; }
+            //public double nh3 { get; set; }
         }
         public class wind
         {
@@ -56,15 +56,15 @@ namespace Weather_Forecaster
         }
         public class sys
         {
-            public string country { get; set; }
-            public int sunrise { get; set; }
-            public int sunset { get; set; }
+            //public string country { get; set; }
+            //public int sunrise { get; set; }
+            //public int sunset { get; set; }
 
 
         }
         public class ListItem
         {
-            public int dt { get; set; }
+//            public int dt { get; set; }
             public main main { get; set; }
             public weather[] weather { get; set; }
             public clouds clouds { get; set; }
@@ -73,23 +73,23 @@ namespace Weather_Forecaster
             public double pop { get; set; }
             public sys sys { get; set; }
             public DateTime dt_txt { get; set; }
-            public components components { get; set; }
+ //           public components components { get; set; }
         }
         public class root
         {
-            public string name { get; set; }
-            public sys sys { get; set; }
+//            public string name { get; set; }
+//            public sys sys { get; set; }
             public int timezone { get; set; }
             public int visibility { get; set; }
-            public clouds clouds { get; set; }
+//            public clouds clouds { get; set; }
             public wind wind { get; set; }
             public main main { get; set; }
             public weather[] weather { get; set; }
             public coord coord { get; set; }
-            public DateTime dt_txt { get; set; }
-            public ListItem[] list { get; set; } // This represents the list of data items for each day
-            public double aqi { get; set; }
-            public List<ListItem> history { get; set; }
+ //           public DateTime dt_txt { get; set; }
+            public ListItem[] list { get; set; }
+//            public double aqi { get; set; }
+//            public List<ListItem> history { get; set; }
 
             public long dt { get; set; }
 

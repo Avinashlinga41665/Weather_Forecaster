@@ -37,6 +37,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
@@ -104,9 +107,16 @@
     <Compile Include="MoreDetails.xaml.cs">
       <DependentUpon>MoreDetails.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RainVideo.xaml.cs">
+      <DependentUpon>RainVideo.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RecentLocation.xaml.cs">
+      <DependentUpon>RecentLocation.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Summary.xaml.cs">
       <DependentUpon>Summary.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UpdatedLocation.cs" />
     <Compile Include="WeatherParameters.cs" />
     <Page Include="Hourly.xaml">
       <SubType>Designer</SubType>
@@ -125,6 +135,14 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="MoreDetails.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RainVideo.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RecentLocation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -159,6 +177,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\home.png" />
+    <Resource Include="Images\trash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\search.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Primary.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\temperature_record.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

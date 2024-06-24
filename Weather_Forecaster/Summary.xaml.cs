@@ -20,6 +20,8 @@ using System.Drawing;
 using LiveCharts;
 using LiveCharts.Wpf;
 using LiveCharts.Wpf.Charts.Base;
+using System.Net.Http;
+using System.Windows.Media.Animation;
 namespace Weather_Forecaster
 {
     /// <summary>
@@ -27,85 +29,129 @@ namespace Weather_Forecaster
     /// </summary>
     public partial class Summary : UserControl
     {
+        private List<RainVideo> rainVideos = new List<RainVideo>();
+
         public Summary()
         {
             InitializeComponent();
         }
 
-        
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
 
         }
-        public  Summary(Dictionary<DateTime, int> temperatures)
+        public Summary(Dictionary<DateTime, int> temperatures, Dictionary<DateTime, int> RainPercentage) : this() //Avinash
         {
             InitializeComponent();
-            var values = new ChartValues<int>();
+
+            var Tempvalues = new ChartValues<int>();
             var labels = new List<string>();
-            var pointColors = new List<System.Windows.Media.Color>();
-
             foreach (var temp in temperatures)
             {
-                values.Add(temp.Value);
-                labels.Add(temp.Key.ToString("HH:mm"));
-            }
+                Tempvalues.Add(temp.Value);
 
-            var series = new LineSeries
-            {
-                Title = "Temperature",
-                Values = values,
-                PointGeometry = DefaultGeometries.Circle,
-                PointGeometrySize = 10,
-                DataLabels = true,
-                Fill = System.Windows.Media.Brushes.Transparent, // Set fill color to transparent
-                Stroke = System.Windows.Media.Brushes.Black, // Set stroke color for the line
-                StrokeThickness = 2 // Set line thickness
-            };
-
-            // Create custom point template with different colors for each point
-            series.PointGeometry = DefaultGeometries.Circle;
-            // Set point color based on temperature
-            foreach (var temp in temperatures)
-            {
-                if (temp.Value > 25)
+                // Include time and rain percentage in the label
+                if (RainPercentage.TryGetValue(temp.Key, out int rainPercentage))
                 {
-                    series.PointForeground = new SolidColorBrush(System.Windows.Media.Colors.Red);
-                }
-                else if (temp.Value >= 20 && temp.Value <= 25)
-                {
-                    series.PointForeground = new SolidColorBrush(System.Windows.Media.Colors.Orange);
+                    labels.Add($"💧{rainPercentage}% \n {temp.Key.ToString("hh:mm tt")}");
                 }
                 else
                 {
-                    series.PointForeground = new SolidColorBrush(System.Windows.Media.Colors.Blue);
+                    labels.Add(temp.Key.ToString("hh:mm tt"));
                 }
             }
 
+            var seriesTemperature = new LineSeries
+            {
+                Title = "Temperature",
+                Values = Tempvalues,
+                PointGeometry = DefaultGeometries.Circle,
+                PointGeometrySize = 10,
+                DataLabels = true,
+                Fill = Brushes.Transparent,
+                Stroke = Brushes.White,
+                StrokeThickness = 2,
+            };
 
-            chart.Series = new SeriesCollection { series };
+            // Add the series to the chart
+            chart.Series = new SeriesCollection { seriesTemperature };
 
+            // Add X-axis
             chart.AxisX.Add(new Axis
             {
                 Title = "Time",
                 Labels = labels,
-                ShowLabels = true, // Show axis labels
-                Separator = new LiveCharts.Wpf.Separator { Step = 1, IsEnabled = false } // Disable gridlines
+                Foreground = Brushes.White,
+                ShowLabels = true,
+                Separator = new LiveCharts.Wpf.Separator { Step = 1, IsEnabled = false }
             });
 
+            // Add X-axis border
+            chart.AxisX[0].Separator.Stroke = Brushes.White;
+            chart.AxisX[0].Separator.StrokeThickness = 1;
+
+            // Add Y-axis for temperature
             chart.AxisY.Add(new Axis
             {
                 Title = "Temperature (°C)",
-                Separator = new LiveCharts.Wpf.Separator { Step = 1, IsEnabled = false } // Disable gridlines
+                LabelFormatter = value => value + "°C",
+                Foreground = Brushes.White,
+                Separator = new LiveCharts.Wpf.Separator { Step = 1, IsEnabled = false }
             });
+
+            // Add rain videos for each section based on rain percentage
+            for (int i = 0; i < temperatures.Count; i++)
+            {
+                var temp = temperatures.ElementAt(i);
+                if (RainPercentage.TryGetValue(temp.Key, out int rainPercentage))
+                {
+                    if (rainPercentage > 95)
+                    {
+                        AddRainVideo();
+                    }
+                }
+            }
+
+            PositionRainVideos(RainPercentage);
         }
-        private System.Windows.Media.Color GetPointColor(int temperature)
+
+        private void AddRainVideo() //Avinash
         {
-            if (temperature > 25)
-                return System.Windows.Media.Color.FromRgb(255, 0, 0); // Red
-            else if (temperature >= 20 && temperature <= 25)
-                return System.Windows.Media.Color.FromRgb(255, 165, 0); // Orange
-            else
-                return System.Windows.Media.Color.FromRgb(0, 0, 255); // Blue
+            RainVideo rainVideo = new RainVideo(); // Instantiate your RainVideo UserControl
+
+            // Store the rain video and its index for positioning later
+            rainVideos.Add(rainVideo);
+
+            overlayCanvas.Children.Add(rainVideo); // Add RainVideo UserControl to overlayCanvas
+        }
+
+        private void PositionRainVideos(Dictionary<DateTime, int> RainPercentage) //Avinash
+        {
+            if (chart.AxisX[0].Labels == null || chart.AxisX[0].Labels.Count == 0)
+                return;
+
+            double step = (800) / (chart.AxisX[0].Labels.Count - 1);
+
+            for (int i = 0; i < rainVideos.Count; i++)
+            {
+                double xPos = 20 + step * FindIndexForRainPercentageGreaterThan95(RainPercentage, i);
+                RainVideo rainVideo = rainVideos[i];
+                Canvas.SetLeft(rainVideo, xPos + 10);
+                Canvas.SetTop(rainVideo, 20);
+            }
+        }
+
+        private int FindIndexForRainPercentageGreaterThan95(Dictionary<DateTime, int> RainPercentage, int startIndex) //Avinash
+        {
+            for (int i = startIndex; i < RainPercentage.Count; i++)
+            {
+                if (RainPercentage.ElementAt(i).Value > 95)
+                {
+                    return i+1;
+                }
+            }
+            return -1;
         }
 
     }

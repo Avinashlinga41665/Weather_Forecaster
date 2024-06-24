@@ -4,151 +4,238 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Weather_Forecaster"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+             mc:Ignorable="d" d:DesignWidth="800" Loaded="UserControl_Loaded" Height="313">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="ScrollBarThumbColor" Color="#9AC8FF"/>
+
+        <Style x:Key="ScrollBarStyle" TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <!-- Lighter shade of blue -->
+            <Setter Property="Foreground" Value="Transparent"/>
+            <!-- Lighter shade of blue -->
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <!-- Lighter shade of blue -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.LineLeftCommand}" Background="Transparent"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.LineRightCommand}" Background="Transparent"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="{StaticResource ScrollBarThumbColor}" Margin="1"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid>
 
-            <StackPanel Name="HorizontalTabData">
-                <!-- Scrollable Weather Cards -->
-                <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Height="305" Margin="5,5,5,5">
-                    <WrapPanel x:Name="HorizontalData" Orientation="Horizontal">
-                        <!-- Weather Card 1 -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Height="250">
-                            <StackPanel Width="150">
-                                <TextBlock Text="--" Name="WeatherDate1" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>                                
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Image Width="40" Height="40" Name="Icon1" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
-                                        <TextBlock Text="--°C" Name="MaxDayTemperature1" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                            <TextBlock Text="Weather Type" Name="WeatherType1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                        </StackPanel>
-                        </Border>
-                        <!-- Weather Card 2 -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" >
+        <StackPanel Name="HorizontalTabData">
+            <!-- Scrollable Weather Cards -->
+            <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Height="288" Margin="5,5,5,5">
+                <ScrollViewer.Resources>
+                    <Style TargetType="ScrollBar" BasedOn="{StaticResource ScrollBarStyle}" />
+                </ScrollViewer.Resources>
+                <WrapPanel x:Name="HorizontalData" Orientation="Horizontal">
+                    <!-- Weather Card 1 -->
+                    <Border BorderBrush="Transparent"  BorderThickness="2" CornerRadius="10" Margin="10" Height="250" ClipToBounds="True">
                         <StackPanel Width="150">
-                                <TextBlock Text="--" Name="WeatherDate2" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Image Width="40" Height="40" Name="Icon1" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
+                                <TextBlock Text="--°C" Name="MaxDayTemperature1" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Weather Type" Name="WeatherType1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
+                            <TextBlock Text="-- mm" Name="wind1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time1" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- Weather Card 2 -->
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10" >
+                        <StackPanel Width="150">
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon2" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature2" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time2" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
-                        </Border>
-                        <!-- Weather Card 3 -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    </Border>
+                    <!-- Weather Card 3 -->
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate3" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon3" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature3" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time3" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
-                        <!-- Weather Card 4 -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    <!-- Weather Card 4 -->
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate4" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon4" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature4" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type4" Name="WeatherType4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time4" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
-                        <!-- Weather Card 5 -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    <!-- Weather Card 5 -->
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate5" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon5" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature5" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time5" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
-                        <!-- Weather Card 6 -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    <!-- Weather Card 6 -->
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate6" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon6" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature6" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time6" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
                     <!-- Weather Card 7 -->
-                    <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate7" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate7" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon7" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature7" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType7" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind7" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time7" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind7" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time7" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
                     <!-- Weather Card 8 -->
-                    <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate8" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate8" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon8" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature8" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType8" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind8" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time8" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind8" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time8" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
                     <!-- Weather Card 9 -->
-                    <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10">
+                    <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" Margin="10">
                         <StackPanel Width="150">
-                            <TextBlock Text="--" Name="WeatherDate9" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#90ADF2" Offset="1"/>
+                                    <GradientStop Color="#FF257198" Offset="0"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                            <TextBlock Text="--" Name="WeatherDate9" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,10,0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Image Width="40" Height="40" Name="Icon9" HorizontalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
                                 <TextBlock Text="--°C" Name="MaxDayTemperature9" Foreground="White" FontSize="24" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Weather Type" Name="WeatherType9" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                            <TextBlock Text="-- mm" Name="wind9" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
-                            <TextBlock Text="--" Name="Time9" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="20,10,0,0"/>
+                            <TextBlock Text="-- mm" Name="wind9" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
+                            <TextBlock Text="--" Name="Time9" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="5,10,0,0"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
-                </ScrollViewer>
-            </StackPanel>
+            </ScrollViewer>
+        </StackPanel>
     </Grid>
 </UserControl>

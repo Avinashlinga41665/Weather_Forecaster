@@ -21,6 +21,8 @@ using System.Net;
 using System.Reflection.Emit;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using static Weather_Forecaster.UpdatedLocation;
+using System.Runtime.Remoting.Messaging;
 namespace Weather_Forecaster
 {
     /// <summary>
@@ -28,13 +30,16 @@ namespace Weather_Forecaster
     /// </summary>
     public partial class MoreDetails : UserControl
     {
+        public DateTime Date = DateTime.Today;
+        private const string filePath = "LastUpdated.json";
+        private static HttpClient httpClient = new HttpClient();
 
         public MoreDetails()
         {
             InitializeComponent();
 
         }
-        private PieChart GenerateWeeklyDonutChart(int sunnyCloudyClearCount, int rainySnowyCount, string title)
+        public PieChart GenerateWeeklyDonutChart(int sunnyCloudyClearCount, int rainySnowyCount, string title)
         {
             try
             {
@@ -72,12 +77,10 @@ namespace Weather_Forecaster
                 return null;
             }
         }
-        public async void Weeklydata(string location)
+        public async Task Weeklydata(string location)
         {
             try
             {
-                using (WebClient web = new WebClient())
-                {
                     string apikey = "329cec969cefc40090ac7b5d60221eaf";
                     string url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
                     bool isValidCity = await MainWindow.IsValidLocationAsync(location);
@@ -102,7 +105,7 @@ namespace Weather_Forecaster
                             throw new Exception("Invalid location and unable to retrieve coordinates.");
                         }
                     }
-                    var json = web.DownloadString(url);
+                    var json = await httpClient.GetStringAsync(url);
                     var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
                     WeatherParameters.root output = result;
 
@@ -116,78 +119,91 @@ namespace Weather_Forecaster
                             sunnyCloudyClearCount++;
                         else if (item.weather[0].main.Contains("Rain") || item.weather[0].main.Contains("Snow"))
                             rainySnowyCount++;
-                    }        
+                    }
                     SunnyCloudyHours.Text = sunnyCloudyClearCount.ToString();
                     RainSnowHours.Text = rainySnowyCount.ToString();
                     PieChartData.Content = GenerateWeeklyDonutChart(sunnyCloudyClearCount, rainySnowyCount, "Weekly Weather Forecast");
+                    var pieChartData = new PieChartData
+                    {
+                        PiechartWeatherType1 = sunnyCloudyClearCount,
+                        PiechartWeatherType2 = rainySnowyCount,
+
+                    };
+                    var weatherdata = LoadWeatherdata(filePath);
+                    weatherdata.pieChartData = pieChartData;
+                    SaveWeatherData(weatherdata, filePath);
+                
+            }
+            catch (Exception)
+            {
+                var moreDetails = LoadWeatherdata(filePath);
+                if (moreDetails.pieChartData != null)
+                {
+                    // Update UI elements with last saved data
+                    Dispatcher.Invoke(() =>
+                    {
+                        SunnyCloudyHours.Text = moreDetails.pieChartData.PiechartWeatherType1.ToString();
+                        RainSnowHours.Text = moreDetails.pieChartData.PiechartWeatherType2.ToString();
+                        PieChartData.Content = GenerateWeeklyDonutChart(moreDetails.pieChartData.PiechartWeatherType1, moreDetails.pieChartData.PiechartWeatherType2, "Weekly Weather Forecast");
+
+                    });
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("An error occurred while retrieving Weekly Weather details: " + ex.Message);
-            }
         }
-        public async void sunsetsrises(string location)
+      
+        public async Task sunsetsrises(string location , DateTime Date)
         {
             try
             {
-                using (WebClient web = new WebClient())
+                string apiKey = "7dec88a780f64b06959170935242605"; // Replace with your WeatherAPI key
+                string baseUrl = "http://api.weatherapi.com/v1/astronomy.json";
+                string url = $"{baseUrl}?key={apiKey}&q={location}&dt={Date.Date}";
+
+                using (HttpClient client = new HttpClient())
                 {
-                    string apikey = "329cec969cefc40090ac7b5d60221eaf";
-                    string url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
-                    bool isValidCity = await MainWindow.IsValidLocationAsync(location);
-                    if (isValidCity)
-                    {
-                        // Use city name
-                        url = $"https://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={apikey}";
-                    }
-                    else
-                    {
-                        // Assume location is in "latitude,longitude" format
-                        var coordinates = await MainWindow.GetCoordinatesFromGeoNamesAsync(location);
+                    
 
-                        if (coordinates.HasValue)
+                        HttpResponseMessage response = await client.GetAsync(url);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        JObject json = JObject.Parse(responseBody);
+
+                        string Sunrises = json["astronomy"]["astro"]["sunrise"].ToString();
+                        string Sunsets = json["astronomy"]["astro"]["sunset"].ToString();
+
+                        // Update the labels on the form
+                        Sunrise.Text = Sunrises;
+                        Sunset.Text = Sunsets;
+                        var sunData = new Sun
                         {
-                            string latitudes = coordinates.Value.Latitude.ToString();
-                            string longitudes = coordinates.Value.Longitude.ToString();
-                            url = $"https://api.openweathermap.org/data/2.5/weather?lat={latitudes}&lon={longitudes}&units=metric&appid={apikey}";
-                        }
-                        else
-                        {
-                            throw new Exception("Invalid location and unable to retrieve coordinates.");
-                        }
-                    }
-                    var json = web.DownloadString(url);
-                    var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
-                    WeatherParameters.root output = result;
-                    double latitude = output.coord.lat;
-                    double longitude = output.coord.lon;
+                            SunTime1 = Sunrises,
+                            SunTime2 = Sunsets,
 
-                    int sunrises = output.sys.sunrise;
-                    int sunsets = output.sys.sunset;
+                        };
+                        var weatherdata = LoadWeatherdata(filePath);
+                        weatherdata.SunData = sunData;
+                        SaveWeatherData(weatherdata, filePath);
+                    
 
-                    DateTime sunriseUtc = UnixTimeStampToDateTime(sunrises);
-                    DateTime sunsetUtc = UnixTimeStampToDateTime(sunsets);
-                    TimeSpan difference = sunsetUtc - sunriseUtc;
-
-                    Sunrise.Text = sunriseUtc.ToString("h:mm tt"); // Display sunrise time with AM/PM indication
-                    Sunset.Text = sunsetUtc.ToString("h:mm tt"); // Display sunset time with AM/PM indication
-                    int totalHours = (int)difference.TotalHours;
-                    int totalMinutes = difference.Minutes;
-
-                    // Create a formatted string
-                    string diffText = $"{totalHours} hr {totalMinutes} min";
-
-                    // Set the label text
+                   
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show("An error occurred: " + ex.Message);
-            }
+                var moreDetails = LoadWeatherdata(filePath);
+                if (moreDetails.SunData != null)
+                {
+                    // Update UI elements with last saved data
+                    Dispatcher.Invoke(() =>
+                    {
+                        Sunrise.Text = moreDetails.SunData.SunTime1.ToString();
+                        Sunset.Text = moreDetails.SunData.SunTime2.ToString();
 
+                    });
+                }
+            }
         }
-        private DateTime UnixTimeStampToDateTime(double unixTimeStamp)
+        public DateTime UnixTimeStampToDateTime(double unixTimeStamp)
         {
             try
             {
@@ -202,18 +218,17 @@ namespace Weather_Forecaster
                 return DateTime.Today;
             }
         }
-        private async Task GetMoonTimes(string date, string location)
+        public async Task GetMoonTimes(string date, string location)
         {
             string apiKey = "7dec88a780f64b06959170935242605"; // Replace with your WeatherAPI key
             string baseUrl = "http://api.weatherapi.com/v1/astronomy.json";
             string url = $"{baseUrl}?key={apiKey}&q={location}&dt={date}";
 
-            using (HttpClient client = new HttpClient())
-            {
+
                 try
                 {
 
-                    HttpResponseMessage response = await client.GetAsync(url);
+                    HttpResponseMessage response = await httpClient.GetAsync(url);
                     response.EnsureSuccessStatusCode();
                     string responseBody = await response.Content.ReadAsStringAsync();
 
@@ -225,48 +240,93 @@ namespace Weather_Forecaster
                     // Update the labels on the form
                     Moonrise.Text = moonrise;
                     Moonset.Text = moonset;
-                }
-                catch (HttpRequestException e)
-                {
-                    MessageBox.Show("Request error: " + e.Message);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show("Error: " + e.Message);
-                }
-            }
-        }
-        public void Suggestionsforday(string location)
-        {
-
-            using (WebClient web = new WebClient())
-            {
-                string apikey = "329cec969cefc40090ac7b5d60221eaf";
-                string url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
-                var json = web.DownloadString(url);
-                var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
-                WeatherParameters.root output = result;
-                foreach (var item in output.list)
-                {
-                    if (item.dt_txt.Date == DateTime.Today.Date)
+                    var moonData = new Moon
                     {
-                        string weatherdescription = string.Format("{0}", item.weather[0].description);
-                        double visiblity = item.visibility / 1000.0;
-                        double temperature = item.main.temp;
-                        double windspeed = item.wind.speed * 3.6;
-                        double feelslike = item.main.feels_like;
-                        double humidity = item.main.humidity;
-                        string umbrellatext = UmbrellaMessage(weatherdescription);
-                        string outdoorstext = OutdoorsMessage(weatherdescription, temperature, feelslike, windspeed);
-                        string clothingtext = ClothingMessage(weatherdescription, temperature, humidity, windspeed);
-                        string drivingtext = DrivingConditionsMessage(visiblity, temperature, windspeed, weatherdescription);
-                        UmbrellaText.Text = umbrellatext;
-                        OutdoorsText.Text = outdoorstext;
-                        ClothingText.Text = clothingtext;
-                        DrivingText.Text = drivingtext;
-                       coloringSuggestionForDay(umbrellatext, outdoorstext, drivingtext, clothingtext);
+                        MoonTime1 = moonrise,
+                        MoonTime2 = moonset,
 
+                    };
+                    var weatherdata = LoadWeatherdata(filePath);
+                    weatherdata.MoonData = moonData;
+                    SaveWeatherData(weatherdata, filePath);
+                }
+                catch (Exception)
+                {
+                    var moreDetails = LoadWeatherdata(filePath);
+                    if (moreDetails.MoonData != null)
+                    {
+                        // Update UI elements with last saved data
+                        Dispatcher.Invoke(() =>
+                        {                           
+                            Moonrise.Text = moreDetails.MoonData.MoonTime1.ToString();
+                            Moonset.Text = moreDetails.MoonData.MoonTime2.ToString();
+
+                        });
                     }
+                }
+            
+        }
+        public async Task Suggestionsforday(string location, DateTime selectedDate)
+        {
+            try
+            {
+
+                    string apikey = "329cec969cefc40090ac7b5d60221eaf";
+                    string url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
+                    var json =  await httpClient.GetStringAsync(url);
+                    var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
+                    WeatherParameters.root output = result;
+                    foreach (var item in output.list)
+                    {
+                        if (item.dt_txt.Date == selectedDate.Date)
+                        {
+                            string weatherdescription = string.Format("{0}", item.weather[0].description);
+                            double visiblity = item.visibility / 1000.0;
+                            double temperature = item.main.temp;
+                            double windspeed = item.wind.speed * 3.6;
+                            double feelslike = item.main.feels_like;
+                            double humidity = item.main.humidity;
+                            string umbrellatext = UmbrellaMessage(weatherdescription);
+                            string outdoorstext = OutdoorsMessage(weatherdescription, temperature, feelslike, windspeed);
+                            string clothingtext = ClothingMessage(weatherdescription, temperature, humidity, windspeed);
+                            string drivingtext = DrivingConditionsMessage(visiblity, temperature, windspeed, weatherdescription);
+                            UmbrellaText.Text = umbrellatext;
+                            OutdoorsText.Text = outdoorstext;
+                            ClothingText.Text = clothingtext;
+                            DrivingText.Text = drivingtext;
+                            coloringSuggestionForDay(umbrellatext, outdoorstext, drivingtext, clothingtext);
+
+                            var suggestionsForDay = new SuggestionsForDay
+                            {                                                              
+                                Umberella = umbrellatext,
+                                Outdoor = outdoorstext,
+                                Driving = drivingtext,
+                                Clothing = clothingtext,
+
+                            };
+                            var weatherdata = LoadWeatherdata(filePath);
+                            weatherdata.suggestionsForDay= suggestionsForDay;
+                            SaveWeatherData(weatherdata, filePath);
+
+                        }
+                    }
+                
+            }
+            catch(Exception)
+            {
+                var moreDetails = LoadWeatherdata(filePath);
+                if (moreDetails.suggestionsForDay != null)
+                {
+                    // Update UI elements with last saved data
+                    Dispatcher.Invoke(() =>
+                    {
+                        UmbrellaText.Text = moreDetails.suggestionsForDay.Umberella.ToString();
+                        OutdoorsText.Text = moreDetails.suggestionsForDay.Outdoor.ToString();
+                        ClothingText.Text = moreDetails.suggestionsForDay.Clothing.ToString();
+                        DrivingText.Text = moreDetails.suggestionsForDay.Driving.ToString();
+                        coloringSuggestionForDay(moreDetails.suggestionsForDay.Umberella.ToString(), moreDetails.suggestionsForDay.Outdoor.ToString(), moreDetails.suggestionsForDay.Driving.ToString(), moreDetails.suggestionsForDay.Clothing.ToString());
+
+                    });
                 }
             }
         }
@@ -378,15 +438,15 @@ namespace Weather_Forecaster
 
         public static string OutdoorsMessage(string weatherDescription, double temperature, double feelsLike, double windSpeed)
         {
-
+            const double TemperatureGreatThreshold = 25.0; // degrees Celsius
             const double TemperatureGoodThreshold = 20.0; // degrees Celsius
             const double TemperatureFairThreshold = 15.0; // degrees Celsius
             const double TemperaturePoorThreshold = 10.0; // degrees Celsius
 
-            const double FeelsLikeGreatThreshold = 25.0; // degrees Celsius
-            const double FeelsLikeGoodThreshold = 20.0; // degrees Celsius
-            const double FeelsLikeFairThreshold = 15.0; // degrees Celsius
-            const double FeelsLikePoorThreshold = 10.0; // degrees Celsius
+            const double FeelsLikeGreatThreshold = 30.0; // degrees Celsius
+            const double FeelsLikeGoodThreshold = 25.0; // degrees Celsius
+            const double FeelsLikeFairThreshold = 20.0; // degrees Celsius
+            const double FeelsLikePoorThreshold = 15.0; // degrees Celsius
 
             const double WindSpeedGreatThreshold = 10.0; // km/h
             const double WindSpeedGoodThreshold = 15.0; // km/h
@@ -398,75 +458,60 @@ namespace Weather_Forecaster
             {
                 case "clear":
                 case "clear sky":
-                    if (temperature > TemperatureGoodThreshold && windSpeed < WindSpeedGoodThreshold)
-                    {
-                        if (feelsLike > FeelsLikeGoodThreshold && feelsLike < FeelsLikeGreatThreshold)
-                            return "Great"; // Perfect weather for outdoor activities
-                        else if (feelsLike > FeelsLikeFairThreshold && feelsLike < FeelsLikeGoodThreshold)
-                            return "Good"; // Good weather for outdoor activities
-                    }
-                    else if ((temperature < TemperaturePoorThreshold || temperature > TemperatureGoodThreshold) || (feelsLike < FeelsLikePoorThreshold || feelsLike > FeelsLikeGreatThreshold))
-                    {
+                    if (temperature > TemperatureGreatThreshold && feelsLike > FeelsLikeGreatThreshold && windSpeed < WindSpeedGoodThreshold)
+                        return "Great";
+                    else if ((temperature > TemperatureGoodThreshold && temperature <= TemperatureGreatThreshold) || (feelsLike > FeelsLikeGoodThreshold && feelsLike <= FeelsLikeGreatThreshold))
+                        return "Good";
+                    else if ((temperature > TemperatureFairThreshold && temperature <= TemperatureGoodThreshold) || (feelsLike > FeelsLikeFairThreshold && feelsLike <= FeelsLikeGoodThreshold))
+                        return "Fair";
+                    else if ((temperature > TemperaturePoorThreshold && temperature <= TemperatureFairThreshold) || (feelsLike > FeelsLikePoorThreshold && feelsLike <= FeelsLikeFairThreshold))
                         return "Poor";
-                    }
-                    else if ((temperature < 5 || temperature > 40) ||
-                              (feelsLike < 5 || feelsLike > 40))// Clear skies but temperature and feels-like temperature are not ideal
-                    {
+                    else
                         return "Very poor";
-                    }
-                    return "Fair"; // Clear skies but temperature or wind speed not ideal
                 case "cloudy":
                 case "partly cloudy":
                 case "mostly cloudy":
-                    if (temperature <= TemperatureFairThreshold || windSpeed >= WindSpeedFairThreshold)
-                        return "Poor"; // Cloudy with poor temperature or wind speed
-                    else if (temperature <= TemperaturePoorThreshold || windSpeed >= WindSpeedGoodThreshold)
-                        return "Very poor"; // Cloudy with very poor temperature or wind speed
-                    else if (temperature <= TemperatureGoodThreshold || windSpeed >= WindSpeedGreatThreshold)
-                        return "Fair"; // Cloudy but still fair for outdoor activities
-                    else if ((temperature < TemperaturePoorThreshold || temperature > TemperatureGoodThreshold) || (feelsLike < FeelsLikePoorThreshold || feelsLike > FeelsLikeGreatThreshold))
-                    {
+                case "few clouds": 
+                case "overcast clouds":
+                    if (temperature <= TemperaturePoorThreshold || feelsLike <= FeelsLikePoorThreshold || windSpeed >= WindSpeedFairThreshold)
                         return "Poor";
-                    }
-                    else if ((temperature < 5 || temperature > 40) ||
-                              (feelsLike < 5 || feelsLike > 40))
-                    {
-                        return "Very poor";
-                    }
+                    else if ((temperature <= TemperatureFairThreshold && temperature > TemperaturePoorThreshold) || (feelsLike <= FeelsLikeFairThreshold && feelsLike > FeelsLikePoorThreshold) || windSpeed >= WindSpeedGoodThreshold)
+                        return "Fair";
+                    else if ((temperature <= TemperatureGoodThreshold && temperature > TemperatureFairThreshold) || (feelsLike <= FeelsLikeGoodThreshold && feelsLike > FeelsLikeFairThreshold) || windSpeed >= WindSpeedGreatThreshold)
+                        return "Good";
                     else
-                        return "Good"; // Cloudy with good temperature and wind speed
+                        return "Great";
                 case "rain":
                 case "light rain":
                 case "moderate rain":
                 case "drizzle":
                     if (windSpeed >= WindSpeedPoorThreshold)
-                        return "Very poor"; // Rainy weather with poor wind speed
+                        return "Poor";
                     else if (temperature <= TemperaturePoorThreshold || feelsLike <= FeelsLikePoorThreshold)
-                        return "Poor"; // Rainy weather with poor temperature or feels-like temperature
+                        return "Very poor";
                     else
-                        return "Fair"; // Rainy but still fair for outdoor activities
+                        return "Fair";
                 case "thunderstorm":
                 case "thunderstorm with rain":
                 case "thunderstorm with heavy rain":
-                    return "Very poor"; // Thunderstorms, unsafe for outdoor activities
+                    return "Very poor";
                 case "snow":
                     if (windSpeed >= WindSpeedGoodThreshold)
-                        return "Poor"; // Snowing with poor wind speed
+                        return "Poor";
                     else
-                        return "Good"; // Snowing, suitable for winter activities
+                        return "Good";
                 case "fog":
                     if (temperature <= TemperaturePoorThreshold || feelsLike <= FeelsLikePoorThreshold || windSpeed >= WindSpeedVeryPoorThreshold)
-                        return "Very poor"; // Foggy weather with poor temperature, feels-like temperature, or wind speed
+                        return "Very poor";
                     else
-                        return "Poor"; // Foggy, visibility might be reduced
+                        return "Poor";
                 default:
-                    return "Uncertain"; // Unknown weather condition
+                    return "Uncertain";
             }
-
         }
+
         public static string ClothingMessage(string weatherDescription, double temperature, double humidity, double windSpeed)
         {
-
             const double TemperatureGoodThreshold = 20.0; // degrees Celsius
             const double TemperatureFairThreshold = 15.0; // degrees Celsius
             const double TemperaturePoorThreshold = 10.0; // degrees Celsius
@@ -480,6 +525,7 @@ namespace Weather_Forecaster
             const double WindSpeedFairThreshold = 20.0; // km/h
             const double WindSpeedPoorThreshold = 25.0; // km/h
             const double WindSpeedVeryPoorThreshold = 30.0; // km/h
+            
 
             switch (weatherDescription.ToLower())
             {
@@ -488,58 +534,54 @@ namespace Weather_Forecaster
                     if (temperature > TemperatureGoodThreshold && windSpeed < WindSpeedGoodThreshold)
                     {
                         if (humidity < HumidityLowThreshold)
-                            return "Light jacket"; // Low humidity, clear skies, and light wind call for a light jacket
+                            return "Light jacket";
                         else if (humidity >= HumidityLowThreshold && humidity < HumidityModerateThreshold)
-                            return "Long sleeves"; // Moderate humidity, clear skies, and light wind call for long sleeves
+                            return "Long sleeves";
                         else
-                            return "T-shirt"; // High humidity, clear skies, and light wind call for a T-shirt
+                            return "T-shirt";
                     }
-                    else if ((temperature < TemperaturePoorThreshold || temperature > TemperatureGoodThreshold) ||
-                             humidity >= HumidityHighThreshold)
-                    {
-                        return "Shorts"; // Temperature not ideal for lighter clothing or high humidity
-                    }
-                    return "Long sleeves"; // Clear skies but wind speed not ideal for lighter clothing
+                    else if (temperature <= TemperaturePoorThreshold || humidity >= HumidityHighThreshold)
+                        return "Shorts";
+                    else
+                        return "Long sleeves";
                 case "cloudy":
                 case "partly cloudy":
                 case "mostly cloudy":
-                    if ((temperature <= TemperatureFairThreshold || windSpeed >= WindSpeedFairThreshold) ||
-                        (temperature < TemperaturePoorThreshold || temperature > TemperatureGoodThreshold) ||
-                        humidity >= HumidityHighThreshold || temperature <= TemperatureGoodThreshold || windSpeed >= WindSpeedGreatThreshold)
-                    {
-                        return "Long sleeves"; // Cloudy with poor temperature or wind speed, or high humidity
-                    }
+                case "few clouds":
+                case "overcast clouds":
+                    if (temperature <= TemperatureFairThreshold || windSpeed >= WindSpeedFairThreshold || humidity >= HumidityHighThreshold || temperature <= TemperatureGoodThreshold || windSpeed >= WindSpeedGreatThreshold)
+                        return "Long sleeves";
                     else
-                        return "Light jacket"; // Cloudy with good temperature and wind speed
+                        return "Light jacket";
                 case "rain":
                 case "light rain":
                 case "moderate rain":
                 case "drizzle":
                     if (windSpeed >= WindSpeedPoorThreshold)
-                        return "Long sleeves"; // Rainy weather with poor wind speed
+                        return "Long sleeves";
                     else if (temperature < TemperaturePoorThreshold || humidity >= HumidityModerateThreshold)
-                        return "Light jacket"; // Rainy weather with poor temperature or high humidity
+                        return "Light jacket";
                     else
-                        return "Long sleeves"; // Rainy but still fair for breathable clothing
+                        return "Long sleeves";
                 case "thunderstorm":
                 case "thunderstorm with rain":
                 case "thunderstorm with heavy rain":
-                    return "Heavy coat"; // Thunderstorms, necessitating heavy coat
+                    return "Heavy coat";
                 case "snow":
                     if (windSpeed >= WindSpeedGoodThreshold)
-                        return "Heavy coat"; // Snowing with poor wind speed
+                        return "Heavy coat";
                     else
-                        return "Long sleeves"; // Snowing, suitable for long sleeves
+                        return "Long sleeves";
                 case "fog":
                     if (temperature < TemperaturePoorThreshold || humidity >= HumidityModerateThreshold || windSpeed >= WindSpeedVeryPoorThreshold)
-                        return "Heavy coat"; // Foggy weather with poor temperature, high humidity, or poor wind speed
+                        return "Heavy coat";
                     else
-                        return "Long sleeves"; // Foggy but still fair for breathable clothing
+                        return "Long sleeves";
                 default:
-                    return "Uncertain"; // Unknown weather condition
+                    return "Uncertain";
             }
-
         }
+
         public void coloringSuggestionForDay(string umbrellamessage,string outdoorsmessage,string drivingconditionsmessage,string clothingmessage)
         {
             switch (umbrellamessage.ToLower())
@@ -624,13 +666,113 @@ namespace Weather_Forecaster
             }
 
         }
-
-        private async void UserControl_Loaded(object sender, RoutedEventArgs e)
+        public async Task MinMaxTemp(string location, DateTime Date)
         {
-            Weeklydata(MainWindow.locationname);
-            sunsetsrises(MainWindow.locationname);
-            Suggestionsforday(MainWindow.locationname);
-            await  GetMoonTimes(DateTime.Today.Date.ToString(), MainWindow.locationname);
+            try
+            {                
+                string apikey = "329cec969cefc40090ac7b5d60221eaf";
+                string url = $"https://api.openweathermap.org/data/2.5/forecast?q={location}&units=metric&appid={apikey}";
+                var json = await httpClient.GetStringAsync(url);
+                var result = JsonConvert.DeserializeObject<WeatherParameters.root>(json);
+                WeatherParameters.root output = result;                   
+                var dayTemps = new List<double>();
+                var nightTemps = new List<double>();
+
+                foreach (var item in output.list)
+                {
+                    if (item.dt_txt.Date == Date.Date)
+                    {
+                        if (item.dt_txt.Hour >= 6 && item.dt_txt.Hour <= 18)
+                        {
+                            dayTemps.Add(item.main.temp_max);
+
+                                DayHighTempTextBlock.Text = "The High will be " + Math.Round(item.main.temp_max) + "°C";
+                                DayWeatherDescTextBlock.Text = MainWindow.GenerateWeatherMessage(item.weather[0].description);
+                        }
+                        else if (item.dt_txt.Hour >= 18 && item.dt_txt.Hour <= 24)
+                        {
+                            nightTemps.Add(item.main.temp_min);
+                              
+                                NightLowTempTextBlock.Text = "The Low will be " + Math.Round(item.main.temp_min) + "°C";
+                                NightWeatherDescTextBlock.Text = MainWindow.GenerateWeatherMessage(item.weather[0].description);
+                                
+                        }
+                    }
+                }
+
+                if (dayTemps.Any())
+                {
+                    double avgDayTemp = Math.Round(dayTemps.Average());
+                    int avgDaytemp = Convert.ToInt32(avgDayTemp);
+                    DayHighTempTextBlock.Text = "The High will be " + avgDaytemp.ToString("F2") + "°C";
+                }
+                else
+                {
+                    DayHighTempTextBlock.Text = "--";
+                }
+
+                if (nightTemps.Any())
+                {
+                    double avgNightTemp = Math.Round(nightTemps.Average());
+                    int avgNighttemp = Convert.ToInt32(avgNightTemp);
+                    NightLowTempTextBlock.Text = "The Low will be " + (avgNighttemp.ToString("F2")) + "°C";
+                }
+                else
+                {
+                    NightLowTempTextBlock.Text = "--";
+                }
+                if (dayTemps.Any() && nightTemps.Any())
+                {
+                    var weatherInsights = new WeatherInsights
+                    {
+                        WeatherInsightsTemperature1 = Convert.ToInt32(dayTemps.Max()),
+                        WeatherInsightsTemperature2 = Convert.ToInt32(nightTemps.Min()),
+                        AvgHighTemp = Convert.ToInt32(dayTemps.Average()),
+                        AvgLowTemp = Convert.ToInt32(nightTemps.Average()),
+                        WeatherInsightsWeatherDescription1 = DayWeatherDescTextBlock.Text,
+                        WeatherInsightsWeatherDescription2 = NightWeatherDescTextBlock.Text
+                    };
+
+                    var weatherdata = LoadWeatherdata(filePath);
+                    weatherdata.weatherInsights = weatherInsights;
+                    SaveWeatherData(weatherdata, filePath);
+                }
+
+
+            }
+            catch (Exception)
+            {
+                var moreDetails = LoadWeatherdata(filePath);
+                if (moreDetails.weatherInsights != null)
+                {
+                    // Update UI elements with last saved data
+                    Dispatcher.Invoke(() =>
+                    {
+                        AvgHigh.Text = moreDetails.weatherInsights.AvgHighTemp.ToString();
+                        AvgLow.Text = moreDetails.weatherInsights.AvgLowTemp.ToString();
+                        DayWeatherDescTextBlock.Text = moreDetails.weatherInsights.WeatherInsightsWeatherDescription1.ToString();
+                        NightWeatherDescTextBlock.Text = moreDetails.weatherInsights.WeatherInsightsWeatherDescription2.ToString();
+                        DayHighTempTextBlock.Text = "The High will be " + moreDetails.weatherInsights.WeatherInsightsTemperature1.ToString() + "°C";
+                        NightLowTempTextBlock.Text = "The Low will be " + moreDetails.weatherInsights.WeatherInsightsTemperature2.ToString().ToString() + "°C";
+
+                    });
+                }
+            }
+        }
+
+
+        public void DetachLoadedEvent()
+        {
+            Loaded -= UserControl_Loaded;
+        }
+
+        public async void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            await Weeklydata(MainWindow.locationname);
+            await MinMaxTemp(MainWindow.locationname, Date);
+            await sunsetsrises(MainWindow.locationname, Date);
+            await Suggestionsforday(MainWindow.locationname,Date);
+            await  GetMoonTimes(Date.ToString(), MainWindow.locationname);
         }
     }
 }

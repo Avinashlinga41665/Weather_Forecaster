@@ -1,0 +1,150 @@
+﻿<UserControl x:Class="Weather_Forecaster.RecentLocation"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Weather_Forecaster"
+             mc:Ignorable="d" Height="50" Width="300">
+    <UserControl.Resources>
+        <Style x:Key="HoverStyle" TargetType="Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2A354F"/>
+                    <!-- LightPink color -->
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Border BorderBrush="Transparent" BorderThickness="2" CornerRadius="10" MouseLeftButtonDown="Border_MouseLeftButtonDown" Margin="5" Style="{StaticResource HoverStyle}">
+            <Grid >
+                <Grid.Background >
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#90ADF2" Offset="1"/>
+                        <GradientStop Color="#FF257198" Offset="0"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
+                <Image Name="HomeIcon" Source="Images/home.png" Width="20" Height="20" Margin="5,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                <Label Name="LocName1" Content="Location1" Foreground="White" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1" Margin="10,0"/>
+                <Image Width="40" Height="40" Stretch="Uniform" Name="Icon1" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2" Margin="10,0"/>
+                <Label Name="Temp1" Content="__C" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="3" Margin="0,0"/>
+                <Button x:Name="Remove" Background="{x:Null}" Height="30" Width="30" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="4" Click="Remove_click" BorderBrush="{x:Null}">
+                    <StackPanel Orientation="Horizontal" Width="26">
+                        <Image Source="Images/remove.png" Width="26" Height="30" Stretch="UniformToFill"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+    <!--<Grid>
+        <WrapPanel x:Name="RecentData" Orientation="Horizontal">
+            <Border  BorderBrush="BlueViolet" BorderThickness="2" CornerRadius="10" MouseLeftButtonDown ="Border_MouseLeftButtonDown">
+                <StackPanel Width="250" Height="30" Background="Transparent">
+                    <Label Name="LocName1" Content="Location1" Foreground="White" FontSize="16" HorizontalAlignment="Left" Margin="20,0,30,40"></Label>
+                    --><!--<StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,-100, 20, 5" Height="34">--><!--
+                        <Image Width="40" Height="20" Stretch="Uniform" Name="Icon1" HorizontalAlignment="Center" Margin="10,-75,20,40"></Image>
+                    --><!--</StackPanel>--><!--
+                    <Label Name="Temp1" Content="__C" Foreground="White" FontSize="20" HorizontalAlignment="Right" Margin="20,-125,60,0" Height="34"></Label>
+                    <Button x:Name="Remove" Content="X" Background="Transparent" Height="40" Width="30" HorizontalAlignment="Right" Margin="0,-110,15,10" Click="Remove_click"></Button>
+                    <Image Name="HomeIcon" Source="C:\Users\avinashl\source\repos\Weather_Forecaster\Weather_Forecaster\home1.png" Width="20" Height="20" Margin="-225,-110,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+        </WrapPanel>
+    </Grid>-->
+    
+    
+    
+    
+    
+    <!--<Grid Background="#FF0E407E" RenderTransformOrigin="0.513,0.387">
+        <WrapPanel x:Name="RecentData" Orientation="Horizontal" Margin="6,5,517,382">
+            -->
+    <!-- Recent Card -->
+    <!--
+            <Border BorderBrush="BlueViolet" BorderThickness="2" CornerRadius="10" Margin="10" Height="35" Width="260" ClipToBounds="True">
+                <StackPanel Width="260" Height="35"  Background="Transparent">
+                    <Label Name="LocName1" Content="Location1" Foreground="White" FontSize="20" HorizontalAlignment="Left" Margin="0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20,-40, 20, 5" Height="34">
+                        <Image Width="40" Height="40" Stretch="Uniform" Name="Icon1" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <Label Name="Temp1" Content="TempValue1" Foreground="White" FontSize="20" HorizontalAlignment="Right" Margin="20,-35,35,5"/>
+                    <Button x:Name="Remove" Content="X" Background="Transparent" Height="10" Width="30" HorizontalAlignment="Right" Margin="0,-35,0,10"></Button>
+                </StackPanel>
+            </Border>-->
+    <!--</WrapPanel>
+    </Grid>-->
+</UserControl>
+
+
+
+
+
+
+
+<!--<UserControl x:Class="Weather_Forecaster.RecentLocation"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Weather_Forecaster"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Background="#FF0E407E">
+        <WrapPanel x:Name="RecentData" Orientation="Horizontal" Width="900" Height="100">
+            -->
+<!-- Recent Card 1 -->
+<!--
+            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Height="60" Width="260" ClipToBounds="True">
+                <StackPanel Width="260" Background="DeepSkyBlue">
+                    <Label Name="LocName1" Content="Location1" Foreground="White" FontSize="20" HorizontalAlignment="Left" Margin="10"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20,-40, 20, 5" Height="34">
+                        <Image Width="40" Height="40" Stretch="Uniform" Name="Icon1" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <Label Name="Temp1" Content="TempValue1" Foreground="White" FontSize="20" HorizontalAlignment="Right" Margin="20,-40,35,5"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,-40, -5, 5" Height="34">
+                        <Image Width="40" Height="40" Name="Icon2" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            -->
+<!-- Recent Card 2 -->
+<!--
+            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Height="60" Width="260" ClipToBounds="True">
+                <StackPanel Width="260" Background="DeepSkyBlue">
+                    <Label Name="LocName2" Content="Location2" Foreground="White" FontSize="20" HorizontalAlignment="Left" Margin="10"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20,-40, 20, 5" Height="34">
+                        <Image Width="40" Height="40" Name="Icon3" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <Label Name="Temp2" Content="TempValue2" Foreground="White" FontSize="20" HorizontalAlignment="Right" Margin="20,-40,35,5"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,-40, -5, 5" Height="34">
+                        <Image Width="40" Height="40" Name="Icon4" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            -->
+<!-- Recent Card 3 -->
+<!--
+            <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="10" Margin="10" Height="60" Width="260" ClipToBounds="True">
+                <StackPanel Width="260" Background="DeepSkyBlue">
+                    <Label Name="LocName3"  Content="Location3" Foreground="White" FontSize="20" HorizontalAlignment="Left" Margin="10"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20,-40, 20, 5" Height="34">
+                        <Image Width="40" Height="40" Name="Icon5" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <Label Name="Temp3" Content="TempValue3" Foreground="White" FontSize="20" HorizontalAlignment="Right" Margin="20,-40,35,5"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,-40, -5, 5" Height="34">
+                        <Image Width="40" Height="40" Name="Icon6" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </WrapPanel>
+    </Grid>
+</UserControl>-->
